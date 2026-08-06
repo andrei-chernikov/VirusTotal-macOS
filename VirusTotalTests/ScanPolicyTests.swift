@@ -5,10 +5,40 @@
 
 import Foundation
 import Testing
+import UniformTypeIdentifiers
 @testable import VirusTotal
 
 @Suite("Scan policy")
 struct ScanPolicyTests {
+    @Test("Temporary download extensions are filtered")
+    func temporaryDownloadExtensionsAreFiltered() {
+        #expect(ScanPolicy.isActiveDownloadExtension("download"))
+        #expect(ScanPolicy.isActiveDownloadExtension("CRDOWNLOAD"))
+        #expect(ScanPolicy.isActiveDownloadExtension("part"))
+        #expect(!ScanPolicy.isActiveDownloadExtension("zip"))
+    }
+
+    @Test("UTType categories are classified")
+    func utTypesAreClassified() {
+        #expect(ScanPolicy.category(for: .zip) == .archives)
+        #expect(ScanPolicy.category(for: .png) == .images)
+        #expect(ScanPolicy.category(for: .mp3) == .audio)
+        #expect(ScanPolicy.category(for: .mpeg4Movie) == .video)
+        #expect(ScanPolicy.category(for: .pdf) == .documents)
+        #expect(ScanPolicy.category(forFilenameExtension: "app", isAppBundle: true) == .applications)
+    }
+
+    @Test("File fingerprints include path, size, and modification time")
+    func fingerprintIncludesPathSizeAndModificationTime() {
+        let fingerprint = ScanPolicy.fileFingerprint(
+            path: "/tmp/sample.zip",
+            fileSize: 42,
+            modificationDate: 1_720_000_000
+        )
+
+        #expect(fingerprint == "/tmp/sample.zip|42|1720000000.0")
+    }
+
     @Test("650 MB upload limit is enforced")
     func uploadSizeLimitIsEnforced() {
         #expect(!ScanPolicy.isSupportedFileSize(0))
