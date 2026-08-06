@@ -32,6 +32,17 @@ extension Defaults.Keys {
     static let appLanguage = Key<AppLanguage>("appLanguage", default: AppLanguage.defaultLanguage)
     static let showMainWindowOnNextLaunch = Key<Bool>("showMainWindowOnNextLaunch", default: false)
 
+    // Downloads Monitor
+    static let autoScanDownloadsEnabled = Key<Bool>("autoScanDownloadsEnabled", default: false)
+    static let autoScanDownloadsFolderPath = Key<String>("autoScanDownloadsFolderPath", default: "")
+    static let autoScanDownloadsFolderBookmark = Key<String>("autoScanDownloadsFolderBookmark", default: "")
+    static let didConfirmAutoScanUploads = Key<Bool>("didConfirmAutoScanUploads", default: false)
+    static let downloadMonitorFileCategories = Key<[DownloadMonitorFileCategory]>(
+        "downloadMonitorFileCategories",
+        default: [.archives, .applications]
+    )
+    static let backgroundMonitoringMode = Key<Bool>("backgroundMonitoringMode", default: false)
+
     // Advanced Settings
     static let miniMode = Key<Bool>("miniMode", default: false)
 }
@@ -114,4 +125,16 @@ enum AppLanguage: String, CaseIterable, Identifiable, Defaults.Serializable {
 
         self = language
     }
+}
+
+enum DownloadMonitorFileCategory: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case archives
+    case applications
+    case documents
+    case images
+    case audio
+    case video
+    case other
+
+    var id: Self { self }
 }

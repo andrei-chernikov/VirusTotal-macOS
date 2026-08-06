@@ -11,6 +11,7 @@ import Defaults
 struct AdvancedTab: View {
     @State private var miniMode = Defaults[.miniMode]
     @State private var showRestartAlert = false
+    @Default(.backgroundMonitoringMode) private var backgroundMonitoringMode: Bool
 
     var body: some View {
         Form {
@@ -24,6 +25,16 @@ struct AdvancedTab: View {
                 .padding(.vertical, 4)
                 .onChange(of: miniMode) {
                     showRestartAlert = true
+                }
+
+                Toggle(isOn: $backgroundMonitoringMode) {
+                    SettingsViewItem(color: .orange,
+                                     systemImage: "menubar.rectangle",
+                                     labelText: "settings.advanced.background",
+                                     subtitleText: "settings.advanced.background.subtitle")
+                }
+                .onChange(of: backgroundMonitoringMode) {
+                    NotificationCenter.default.post(name: .backgroundMonitoringModeChanged, object: nil)
                 }
             }
         }

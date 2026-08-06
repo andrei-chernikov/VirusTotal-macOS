@@ -14,17 +14,30 @@ import Sparkle
 struct VirusTotalApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
     @Environment(\.openURL) private var openURL
     @Default(.appFirstLaunch) private var appFirstLaunch: Bool
     @Default(.appLanguage) private var appLanguage: AppLanguage
     @State private var shouldShowFullMainWindowAfterRelaunch = Defaults[.showMainWindowOnNextLaunch]
     @State private var scanHistoryManager = ScanHistoryManager.shared
+    @State private var downloadsMonitor = DownloadsMonitorViewModel.shared
     private var appState = AppState.shared
 
     var body: some Scene {
         Window("VirusTotal for macOS", id: WindowID.main.rawValue) {
             mainWindowContent
                 .environment(\.locale, appLocale)
+                .task(priority: .background) {
+                    appDelegate.openMainWindowAction = {
+                        openWindow(id: WindowID.main.rawValue)
+                    }
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .openMainWindowRequested)) { _ in
+                    openWindow(id: WindowID.main.rawValue)
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .openSettingsRequested)) { _ in
+                    openSettings()
+                }
         }
         .windowResizability(.contentSize)
         .defaultSize(width: 800, height: 550)
@@ -87,6 +100,7 @@ struct VirusTotalApp: App {
                         log.error("Error loading scan entries: \(error)")
                     }
                     await NotificationManager.requestAuthorization()
+                    downloadsMonitor.startIfNeeded()
                 }
         }
     }

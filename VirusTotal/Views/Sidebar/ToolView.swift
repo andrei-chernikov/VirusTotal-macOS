@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Defaults
 
 struct ToolView: View {
     var searchText: String
@@ -27,7 +26,7 @@ struct ToolView: View {
     }
 
     @ViewBuilder
-    private func viewForSidebarItem(_ item: SidebarItem) -> some View {
+    private func viewForSidebarItem(_ item: ServiceSidebarItem) -> some View {
         switch item {
         case .history:
             ScanHistoryView()
@@ -35,34 +34,15 @@ struct ToolView: View {
         case .log:
             LogView()
                 .frame(minWidth: 600, minHeight: 500)
+        default:
+            EmptyView()
         }
     }
 
-    private var filteredItems: [SidebarItem] {
-        SidebarItem.filtered(by: searchText, using: \.localizedText)
-    }
-
-    private enum SidebarItem: String, CaseIterable, Identifiable {
-        case history = "sidebar.history"
-        case log = "sidebar.log"
-
-        var id: String { self.rawValue }
-
-        var titleKey: LocalizedStringKey {
-            LocalizedStringKey(rawValue)
-        }
-
-        var localizedText: String {
-            Defaults[.appLanguage].localizedString(forKey: rawValue)
-        }
-
-        var systemImageName: String {
-            switch self {
-            case .history:
-                return "book.closed"
-            case .log:
-                return "doc.text"
-            }
+    private var filteredItems: [ServiceSidebarItem] {
+        guard !searchText.isEmpty else { return ServiceSidebarItem.toolItems }
+        return ServiceSidebarItem.toolItems.filter {
+            $0.localizedText.localizedCaseInsensitiveContains(searchText)
         }
     }
 }
