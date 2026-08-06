@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Defaults
 
 struct ToolView: View {
     var searchText: String
@@ -18,8 +19,7 @@ struct ToolView: View {
         Section("sidebar.section.tools") {
             ForEach(filteredItems) { item in
                 NavigationLink(destination: viewForSidebarItem(item)) {
-                    Label(item.localizedText,
-                          systemImage: item.systemImageName)
+                    Label(item.titleKey, systemImage: item.systemImageName)
                 }
                 .tag(item)
             }
@@ -48,8 +48,12 @@ struct ToolView: View {
 
         var id: String { self.rawValue }
 
+        var titleKey: LocalizedStringKey {
+            LocalizedStringKey(rawValue)
+        }
+
         var localizedText: String {
-            NSLocalizedString(self.rawValue, comment: "")
+            Defaults[.appLanguage].localizedString(forKey: rawValue)
         }
 
         var systemImageName: String {

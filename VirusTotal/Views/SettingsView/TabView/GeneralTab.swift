@@ -14,6 +14,7 @@ struct GeneralTab: View {
     private let updater: SPUUpdater
 
     @State private var autoChecksForUpdates: Bool
+    @State private var selectedLanguage = Defaults[.appLanguage]
     @Default(.cleanURL) private var cleanURL: Bool
     @Default(.startPage) private var startPage: NavigationItem
     @Default(.enableNotification) private var enableNotification: Bool
@@ -38,7 +39,7 @@ struct GeneralTab: View {
                 }
                 Picker(selection: $startPage) {
                     ForEach(NavigationItem.allCases) { item in
-                        Text(item.rawValue.nslocalized)
+                        Text(LocalizedStringKey(item.rawValue))
                     }
                 } label: {
                     SettingsViewItem(color: .blue,
@@ -46,6 +47,21 @@ struct GeneralTab: View {
                                      labelText: "settings.general.startpage")
                 }
                 .controlSize(.regular)
+
+                Picker(selection: $selectedLanguage) {
+                    ForEach(AppLanguage.allCases) { language in
+                        Text(language.displayName)
+                    }
+                } label: {
+                    SettingsViewItem(color: .blue,
+                                     systemImage: "globe",
+                                     labelText: "settings.general.language")
+                }
+                .controlSize(.regular)
+                .onChange(of: selectedLanguage) { _, newValue in
+                    Defaults[.appLanguage] = newValue
+                    newValue.apply()
+                }
             }
 
             Section {
