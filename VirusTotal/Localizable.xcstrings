@@ -2332,6 +2332,34 @@
         }
       }
     },
+    "settings.advanced.mini.restart.message" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Restartujte VirusTotal, aby se změna Mini režimu projevila."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restart VirusTotal to apply Mini Mode changes."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "重新启动 VirusTotal 以应用迷你模式更改。"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перезапустите VirusTotal, чтобы применить изменения Mini Mode."
+          }
+        }
+      }
+    },
     "settings.api" : {
       "localizations" : {
         "cs" : {
@@ -2728,6 +2756,34 @@
         }
       }
     },
+    "settings.general.language" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Jazyk"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Language"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "语言"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Язык"
+          }
+        }
+      }
+    },
     "settings.general.launch" : {
       "localizations" : {
         "cs" : {
@@ -2812,6 +2868,90 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "自动检查更新"
+          }
+        }
+      }
+    },
+    "settings.restart.alert.confirm" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Restartovat"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restart"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "重新启动"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перезапустить"
+          }
+        }
+      }
+    },
+    "settings.restart.alert.later" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Později"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "稍后"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Позже"
+          }
+        }
+      }
+    },
+    "settings.restart.alert.title" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Vyžadován restart"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restart required"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "需要重新启动"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Требуется перезапуск"
           }
         }
       }
