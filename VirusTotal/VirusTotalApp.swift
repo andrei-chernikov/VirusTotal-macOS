@@ -160,6 +160,7 @@ struct VirusTotalApp: App {
 
     // MARK: Internal
     init() {
+        APIKeychain.migrateAPIKeyFromDefaultsIfNeeded()
         // Tips
         #if DEBUG
         try? Tips.resetDatastore()
