@@ -17,6 +17,7 @@ struct VirusTotalApp: App {
     @Environment(\.openURL) private var openURL
     @Default(.appFirstLaunch) private var appFirstLaunch: Bool
     @Default(.appLanguage) private var appLanguage: AppLanguage
+    @State private var shouldShowFullMainWindowAfterRelaunch = Defaults[.showMainWindowOnNextLaunch]
     @State private var scanHistoryManager = ScanHistoryManager.shared
     private var appState = AppState.shared
 
@@ -170,6 +171,9 @@ struct VirusTotalApp: App {
     // MARK: Internal
     init() {
         AppLanguage.synchronizePreference()
+        // Consumed once, so a relaunch triggered from Settings lands in the
+        // full window and the next launch honours Mini Mode again.
+        Defaults[.showMainWindowOnNextLaunch] = false
         // Tips
         #if DEBUG
         try? Tips.resetDatastore()
@@ -187,7 +191,7 @@ struct VirusTotalApp: App {
     // MARK: Private
     private let updaterController: SPUStandardUpdaterController
     private let feedbackURL = URL(string: "https://github.com/Jerry23011/VirusTotal-macOS/issues/new/choose")!
-    private var miniMode: Bool { Defaults[.miniMode] }
+    private var miniMode: Bool { Defaults[.miniMode] && !shouldShowFullMainWindowAfterRelaunch }
     private var appLocale: Locale { appLanguage.locale }
     private var logDirectory: URL {
         let homeDirectory = FileManager.default.homeDirectoryForCurrentUser

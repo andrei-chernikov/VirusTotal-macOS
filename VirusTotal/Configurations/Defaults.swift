@@ -30,6 +30,7 @@ extension Defaults.Keys {
     static let startPage = Key<NavigationItem>("startPage", default: .home)
     static let enableNotification = Key<Bool>("enableNotification", default: true)
     static let appLanguage = Key<AppLanguage>("appLanguage", default: AppLanguage.defaultLanguage)
+    static let showMainWindowOnNextLaunch = Key<Bool>("showMainWindowOnNextLaunch", default: false)
 
     // Advanced Settings
     static let miniMode = Key<Bool>("miniMode", default: false)
