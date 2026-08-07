@@ -96,7 +96,7 @@ struct AboutView: View {
 
     // MARK: Private
 
-    private let appName: LocalizedStringResource = "VirusTotal for macOS"
+    private let appName: LocalizedStringKey = "VirusTotal for macOS"
     private var version: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
     }

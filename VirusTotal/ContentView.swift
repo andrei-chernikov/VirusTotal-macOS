@@ -18,6 +18,10 @@ struct ContentView: View {
         } detail: {
             detail
                 .frame(minWidth: 600, minHeight: 500)
+                // Set here rather than on the Window scene: a scene title is
+                // resolved once at launch and would keep the launch language
+                // after the picker changes it.
+                .navigationTitle("VirusTotal for macOS")
         }
     }
 

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Defaults
 import Charts
 
 /// Given a URLAnalysisStats, return a Pie Chart with data
@@ -24,7 +25,7 @@ struct URLChartView: View {
                     angularInset: 1.5
                 )
                 .cornerRadius(3)
-                .foregroundStyle(by: .value(String("Type"), element.type.nslocalized))
+                .foregroundStyle(by: .value(String("Type"), Defaults[.appLanguage].localizedString(forKey: element.type)))
             }
             .chartLegend(position: .leading, alignment: .center)
             .chartBackground { chartProxy in

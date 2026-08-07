@@ -2812,6 +2812,34 @@
         }
       }
     },
+    "settings.general.language" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Jazyk"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Language"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "语言"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Язык"
+          }
+        }
+      }
+    },
     "settings.general.launch" : {
       "localizations" : {
         "cs" : {

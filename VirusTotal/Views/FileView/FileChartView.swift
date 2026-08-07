@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Defaults
 import Charts
 
 struct FileChartView: View {
@@ -25,7 +26,7 @@ struct FileChartView: View {
                     angularInset: 1.5
                 )
                 .cornerRadius(3)
-                .foregroundStyle(by: .value(String("Type"), element.type.nslocalized))
+                .foregroundStyle(by: .value(String("Type"), Defaults[.appLanguage].localizedString(forKey: element.type)))
             }
             .chartLegend(position: .leading, alignment: .center)
             .chartBackground { chartProxy in
