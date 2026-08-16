@@ -35,15 +35,12 @@ struct DownloadsMonitorView: View {
             "downloadsmonitor.scanexisting.alert.title",
             isPresented: $isScanExistingConfirmationPresented
         ) {
-            Button("Scan \(existingFileCount) Files", role: nil) {
+            Button("downloadsmonitor.scanexisting.alert.confirm \(existingFileCount)", role: nil) {
                 viewModel.scanExistingFiles()
             }
             Button("common.cancel", role: .cancel) { }
         } message: {
-            Text("""
-            Files not already known to VirusTotal may be uploaded. \
-            Scanning may use a significant amount of your API quota and take a long time.
-            """)
+            Text("downloadsmonitor.scanexisting.alert.message")
         }
         .confirmationDialog(
             "downloadsmonitor.autoscan.alert.title",
@@ -147,7 +144,7 @@ struct DownloadsMonitorView: View {
                 )) {
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
                         Text(category.localizedTitle)
-                        Text("(\(category.extensionExamples))")
+                        Text(verbatim: "(\(category.extensionExamples))")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -165,10 +162,7 @@ struct DownloadsMonitorView: View {
             ContentUnavailableView(
                 "downloadsmonitor.empty.title",
                 systemImage: "tray",
-                description: Text("""
-                Auto Scan only checks files added after it is enabled. \
-                Scan Existing checks files already in the folder; unknown files may be uploaded to VirusTotal and use API quota.
-                """)
+                description: Text("downloadsmonitor.autoscan.footnote")
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
@@ -278,7 +272,9 @@ private struct DownloadsMonitorRowView: View {
             HStack(spacing: 4) {
                 ProgressView()
                     .controlSize(.small)
-                Text(item.status == .preparing ? "Preparing" : "downloadsmonitor.status.analyzing")
+                Text(item.status == .preparing
+                     ? "downloadsmonitor.status.preparing"
+                     : "downloadsmonitor.status.analyzing")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

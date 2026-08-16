@@ -1732,6 +1732,34 @@
         }
       }
     },
+    "downloadsmonitor.status.preparing" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Příprava"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подготовка"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "准备中"
+          }
+        }
+      }
+    },
     "downloadsmonitor.status.queued" : {
       "extractionState" : "manual",
       "localizations" : {
