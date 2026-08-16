@@ -4433,26 +4433,26 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nové okno"
+            "state" : "machine_translated",
+            "value" : "Otevřít VirusTotal"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "New Window"
+            "value" : "Open VirusTotal"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Новое окно"
+            "value" : "Открыть VirusTotal"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "新建窗口"
+            "state" : "machine_translated",
+            "value" : "打开 VirusTotal"
           }
         }
       }
