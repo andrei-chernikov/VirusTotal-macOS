@@ -123,11 +123,17 @@ final class FileViewModel {
                 } else {
                     await self.retryFileReport(retryCount: self.numberOfRetries)
                 }
+            } else if self.statusMonitor == .fail {
+                self.errorMessage = result.errorMessage
+                cleanupPreparedFile()
+            } else if self.uploadSuccess == true {
+                // The file was uploaded, so a 404 here means VirusTotal is
+                // still building the report, not that the file is unknown.
+                // Without this the scan stopped silently and never resumed.
+                self.statusMonitor = .analyzing
+                await self.retryFileReport(retryCount: self.numberOfRetries)
             } else {
                 self.errorMessage = result.errorMessage
-                if self.statusMonitor == .fail {
-                    cleanupPreparedFile()
-                }
             }
         } catch is CancellationError {
             cleanupPreparedFile()
@@ -164,6 +170,7 @@ final class FileViewModel {
             if uploadResult.uploadSuccess == true {
                 self.statusMonitor = .analyzing
                 self.uploadSuccess = true
+                self.currentAnalysisId = uploadResult.analysisId
                 return true
             } else {
                 self.errorMessage = uploadResult.errorMessage
@@ -244,9 +251,36 @@ final class FileViewModel {
     }
 
     private func uploadCurrentFileAndFetchReport() async throws {
-        if try await uploadFile() {
-            try await Task.sleep(nanoseconds: 20_000_000_000) // 20 seconds
-            await getNewFileReport()
+        guard try await uploadFile() else { return }
+        try await waitForQueuedAnalysis()
+        await getNewFileReport()
+    }
+
+    /// Wait on `/analyses/{id}` until VirusTotal says the analysis is done.
+    /// The file report is only published once the backend finishes, so asking
+    /// for it after a fixed delay raced the queue and left new files hanging.
+    private func waitForQueuedAnalysis() async throws {
+        guard let analysisId = currentAnalysisId else {
+            try await Task.sleep(for: ScanPolicy.pollingInterval)
+            return
+        }
+
+        var attempt = 0
+        while true {
+            guard !self.cancellationRequested else { return }
+
+            let status = try? await FileAnalysis.shared.getAnalysisStatus(
+                analysisId: analysisId,
+                cancellationToken: currentCancellationToken
+            )
+
+            switch ScanPolicy.analysisPollDecision(status: status, attempt: attempt) {
+            case .finished, .timedOut:
+                return
+            case .keepWaiting:
+                try await Task.sleep(for: ScanPolicy.pollingInterval)
+                attempt += 1
+            }
         }
     }
 
@@ -300,6 +334,7 @@ final class FileViewModel {
     private var largeFileEndpoint: String?
     private var uploadSuccess: Bool?
     private var numberOfRetries = 0
+    private var currentAnalysisId: String?
     private let defaultFileURL = URL(string: "file://")!
     private let noFileSizeError: String = "Local Error: Can't retrieve file size"
     private let defaultUploadURL: String = ScanPolicy.defaultUploadEndpoint

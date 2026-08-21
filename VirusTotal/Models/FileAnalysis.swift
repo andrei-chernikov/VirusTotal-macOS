@@ -96,6 +96,45 @@ private final class FileAnalysisRequestRegistrationBox: @unchecked Sendable {
 actor FileAnalysis {
     static let shared = FileAnalysis()
 
+    /// Ask VirusTotal how far along the queued analysis is.
+    /// Returns the raw `status` string, or nil when the response carries none.
+    func getAnalysisStatus(analysisId: String,
+                           cancellationToken: FileAnalysisCancellationToken? = nil) async throws -> String? {
+        let apiEndPoint = "https://www.virustotal.com/api/v3/analyses/\(analysisId)"
+        let headers: HTTPHeaders = [
+            "accept": "application/json",
+            "x-apikey": apiKey
+        ]
+        let requestBox = FileAnalysisRequestBox()
+        let registrationBox = FileAnalysisRequestRegistrationBox()
+
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                let request = AF.request(apiEndPoint, method: .get, headers: headers)
+                    .validate()
+                    .responseDecodable(of: AnalysisStatusResponse.self) { response in
+                        defer { registrationBox.unregister(from: cancellationToken) }
+
+                        if response.error?.isExplicitlyCancelledError == true {
+                            continuation.resume(throwing: CancellationError())
+                            return
+                        }
+
+                        switch response.result {
+                        case .success(let status):
+                            continuation.resume(returning: status.data.attributes.status)
+                        case .failure(let error):
+                            continuation.resume(throwing: error)
+                        }
+                    }
+                registrationBox.set(cancellationToken?.register(request))
+                requestBox.set(request)
+            }
+        } onCancel: {
+            requestBox.cancel()
+        }
+    }
+
     func getFileReport(sha256: String, cancellationToken: FileAnalysisCancellationToken? = nil) async throws -> FileAnalysisResult {
         let apiEndPoint = "https://www.virustotal.com/api/v3/files/\(sha256)"
         let headers: HTTPHeaders = [
@@ -161,11 +200,13 @@ actor FileAnalysis {
 
                     var fileUploadResult = FileUploadResult(statusMonitor: nil,
                                                             errorMessage: nil,
-                                                            uploadSuccess: nil)
+                                                            uploadSuccess: nil,
+                                                            analysisId: nil)
 
                     switch response.result {
-                    case .success:
+                    case .success(let uploadResponse):
                         fileUploadResult.uploadSuccess = true
+                        fileUploadResult.analysisId = uploadResponse.data.id
                         continuation.resume(returning: fileUploadResult)
                     case .failure(let error):
                         log.error(error)
@@ -338,6 +379,8 @@ struct FileUploadResult {
     var statusMonitor: AnalysisStatus?
     var errorMessage: String?
     var uploadSuccess: Bool?
+    /// Identifier of the analysis VirusTotal queued for this upload.
+    var analysisId: String?
 }
 
 struct FileGetEndpointResult {
@@ -402,6 +445,19 @@ struct FileAnalysisStats: Codable {
 }
 
 // MARK: File Upload Response
+
+/// Minimal shape of `/analyses/{id}` — only the status is needed here.
+struct AnalysisStatusResponse: Decodable {
+    let data: AnalysisStatusData
+}
+
+struct AnalysisStatusData: Decodable {
+    let attributes: AnalysisStatusAttributes
+}
+
+struct AnalysisStatusAttributes: Decodable {
+    let status: String?
+}
 
 struct FileUploadResponse: Decodable {
     let data: UploadResponse

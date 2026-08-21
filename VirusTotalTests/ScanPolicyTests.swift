@@ -67,4 +67,32 @@ struct ScanPolicyTests {
         #expect(!ScanPolicy.isValidAnalysisStats(emptyStats))
         #expect(ScanPolicy.isValidAnalysisStats(completeStats))
     }
+
+    @Test("A completed analysis stops the wait immediately")
+    func completedAnalysisFinishes() {
+        #expect(ScanPolicy.analysisPollDecision(status: "completed", attempt: 0) == .finished)
+        #expect(ScanPolicy.analysisPollDecision(status: "completed",
+                                                attempt: ScanPolicy.maxPollingAttempts) == .finished)
+    }
+
+    @Test("A queued or running analysis keeps the caller waiting")
+    func queuedAnalysisKeepsWaiting() {
+        #expect(ScanPolicy.analysisPollDecision(status: "queued", attempt: 0) == .keepWaiting)
+        #expect(ScanPolicy.analysisPollDecision(status: "in-progress", attempt: 5) == .keepWaiting)
+    }
+
+    @Test("A missing or unknown status is treated as still running")
+    func unknownStatusKeepsWaiting() {
+        #expect(ScanPolicy.analysisPollDecision(status: nil, attempt: 0) == .keepWaiting)
+        #expect(ScanPolicy.analysisPollDecision(status: "", attempt: 0) == .keepWaiting)
+        #expect(ScanPolicy.analysisPollDecision(status: "something-new", attempt: 0) == .keepWaiting)
+    }
+
+    @Test("Waiting for an analysis gives up once the polling budget runs out")
+    func analysisPollingIsBounded() {
+        #expect(ScanPolicy.analysisPollDecision(status: "queued",
+                                                attempt: ScanPolicy.maxPollingAttempts - 1) == .keepWaiting)
+        #expect(ScanPolicy.analysisPollDecision(status: "queued",
+                                                attempt: ScanPolicy.maxPollingAttempts) == .timedOut)
+    }
 }
