@@ -23,9 +23,6 @@ struct ContentView: View {
             detail
                 .frame(minWidth: 600, minHeight: 500)
         }
-        .task {
-            self.configureMainWindowTitlebar()
-        }
     }
 
     // MARK: ViewBuilder
@@ -60,14 +57,6 @@ struct ContentView: View {
 
     // MARK: Private
     private var startPage: NavigationItem { Defaults[.startPage] }
-
-    private func configureMainWindowTitlebar() {
-        guard let window = NSApp.findWindow(WindowID.main) else { return }
-        // Keep this hidden: the system window title is squeezed into the sidebar titlebar area and gets clipped.
-        // The visible title belongs to the NavigationSplitView detail column via navigationTitle above.
-        window.titleVisibility = .hidden
-        window.titlebarAppearsTransparent = false
-    }
 }
 
  #Preview {
