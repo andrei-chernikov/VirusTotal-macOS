@@ -55,6 +55,23 @@ struct FileBatchViewModelTests {
         #expect(!viewModel.isPreparingFiles)
     }
 
+    @Test("Clear cancels the entire multi-file import, including files not yet prepared")
+    func clearingStopsRemainingImportedFiles() async throws {
+        let directory = try temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let first = try makeLargeFile(in: directory)
+        let second = directory.appendingPathComponent("second.txt")
+        try Data("second".utf8).write(to: second)
+        let viewModel = FileBatchViewModel()
+        let adding = Task { await viewModel.addFiles([first, second]) }
+        for _ in 0..<1_000 where !viewModel.isPreparingFiles { await Task.yield() }
+        try #require(viewModel.isPreparingFiles)
+        viewModel.clearAllFiles()
+        await adding.value
+        #expect(viewModel.batchFiles.isEmpty)
+        #expect(!viewModel.isPreparingFiles)
+    }
+
     @Test("Adding the same file twice at once keeps one entry")
     func concurrentDuplicateIsIgnored() async throws {
         let directory = try temporaryDirectory()

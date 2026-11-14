@@ -33,7 +33,8 @@ struct FileView: View {
                         OpenFinderButton(title: "fileview.button.open.finder",
                                          systemImage: "folder",
                                          action: onPressFileImporter)
-                        .frame(width: 200)
+                        .frame(minWidth: 200)
+                        .fixedSize()
                         .padding(.top)
                         .scaleEffect(isFileDropped ? 1.05 : 1)
                         .animation(.spring, value: isFileDropped)

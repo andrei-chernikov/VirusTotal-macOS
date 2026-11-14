@@ -98,7 +98,7 @@ final class DownloadsMonitorViewModel {
     }
 
     func setMonitoringEnabled(_ enabled: Bool) {
-        guard !enabled || hasSavedFolderAccess else {
+        guard !enabled || (hasSavedFolderAccess && Defaults[.didConfirmAutoScanUploads]) else {
             isEnabled = false
             Defaults[.autoScanDownloadsEnabled] = false
             statusMessage = localizedString("downloadsmonitor.status.choose_folder")
@@ -116,7 +116,7 @@ final class DownloadsMonitorViewModel {
     }
 
     func setFolderURL(_ url: URL) {
-        cancelScanExistingTask()
+        stopMonitoring()
         saveSecurityScopedBookmark(for: url)
         Defaults[.autoScanDownloadsFolderPath] = url.path
         folderURL = url
@@ -134,7 +134,8 @@ final class DownloadsMonitorViewModel {
     }
 
     func scanExistingFiles() {
-        guard scanExistingTask == nil else { return }
+        guard scanExistingTask == nil, hasSavedFolderAccess else { return }
+        if securityScopedFolderURL == nil { activateFolderAccess(for: folderURL) }
 
         let taskID = UUID()
         scanExistingTaskID = taskID
@@ -294,7 +295,7 @@ final class DownloadsMonitorViewModel {
     }
 
     private func queueFileIfNeeded(_ url: URL) async -> Bool {
-        guard let stableURL = await waitForStableFile(at: url) else { return false }
+        guard let stableURL = await waitForStableFile(at: url), !Task.isCancelled else { return false }
         let fingerprint = fileFingerprint(for: stableURL)
         guard !queuedFileFingerprints.contains(fingerprint) else { return true }
 
@@ -302,10 +303,15 @@ final class DownloadsMonitorViewModel {
         do {
             preparedURL = try await FilePreparation.scanFileURL(for: stableURL)
         } catch {
+            guard !Task.isCancelled else { return false }
             appendFailedItem(url: stableURL, message: localErrorMessage(error))
             return true
         }
 
+        guard !Task.isCancelled else {
+            FilePreparation.cleanupPreparedFile(at: preparedURL)
+            return false
+        }
         let fileSize = fileSize(for: preparedURL)
         guard ScanPolicy.isSupportedFileSize(fileSize) else {
             appendFailedItem(originalURL: stableURL, preparedURL: preparedURL, message: localizedString("downloadsmonitor.error.file_size"))
@@ -315,6 +321,7 @@ final class DownloadsMonitorViewModel {
 
         do {
             let sha256 = try await sha256(for: preparedURL)
+            try Task.checkCancellation()
             guard !queuedFileHashes.contains(sha256) else {
                 FilePreparation.cleanupPreparedFile(at: preparedURL)
                 return true
@@ -356,6 +363,10 @@ final class DownloadsMonitorViewModel {
                 self.scanTask = nil
                 self.scanTaskID = nil
                 self.scanCancellationToken = nil
+                if !self.isEnabled, self.scanExistingTask == nil {
+                    self.securityScopedFolderURL?.stopAccessingSecurityScopedResource()
+                    self.securityScopedFolderURL = nil
+                }
             }
         }
     }
@@ -402,10 +413,14 @@ final class DownloadsMonitorViewModel {
 
             item.status = .uploading
             notifyUploadStarted(for: item)
-            if try await upload(item, cancellationToken: cancellationToken) {
-                try Task.checkCancellation()
+            let uploadResult = try await upload(item, cancellationToken: cancellationToken)
+            try Task.checkCancellation()
+            if uploadResult.uploadSuccess == true {
                 item.status = .analyzing
-                try await Task.sleep(for: .seconds(20))
+                if let analysisID = uploadResult.analysisId {
+                    try await FileAnalysis.shared.waitForAnalysis(analysisId: analysisID, cancellationToken: cancellationToken)
+                }
+                try Task.checkCancellation()
                 await waitForAnalysis(item, cancellationToken: cancellationToken)
             } else {
                 fail(item, message: localizedString("downloadsmonitor.error.upload_failed"))
@@ -417,18 +432,19 @@ final class DownloadsMonitorViewModel {
                 item.uploadProgress = 0
             }
         } catch {
+            guard !Task.isCancelled else { return }
             fail(item, message: error.displayMessageWithCode)
         }
     }
 
-    private func upload(_ item: DownloadScanItem, cancellationToken: FileAnalysisCancellationToken) async throws -> Bool {
+    private func upload(_ item: DownloadScanItem, cancellationToken: FileAnalysisCancellationToken) async throws -> FileUploadResult {
         var endpoint = defaultUploadURL
         if ScanPolicy.requiresLargeUploadEndpoint(fileSize: item.fileSize) {
             let endpointResult = try await FileAnalysis.shared.getLargeFileEndpoint(cancellationToken: cancellationToken)
             try Task.checkCancellation()
             guard endpointResult.getEndpointSuccess == true,
                   let largeEndpoint = endpointResult.largeFileEndpoint else {
-                return false
+                throw VTError.upload(endpointResult.errorMessage ?? localizedString("downloadsmonitor.error.upload_failed"))
             }
             endpoint = largeEndpoint
         }
@@ -446,7 +462,7 @@ final class DownloadsMonitorViewModel {
             cancellationToken: cancellationToken,
             progressHandler: progressHandler
         )
-        return uploadResult.uploadSuccess == true
+        return uploadResult
     }
 
     private func waitForAnalysis(_ item: DownloadScanItem, cancellationToken: FileAnalysisCancellationToken) async {

@@ -90,7 +90,8 @@ struct FileBatchView: View {
 
             OpenFinderButton(title: "filebatchview.button.open.finder",
                              systemImage: "folder") {isFileImporterPresent = true}
-                .frame(width: 200)
+                .frame(minWidth: 200)
+                        .fixedSize()
                 .padding(.top)
                 .scaleEffect(isFileDropped ? 1.05 : 1)
                 .animation(.spring, value: isFileDropped)

@@ -26,8 +26,28 @@ struct DownloadsMonitorTests {
 }
 
 @MainActor
-@Suite("Downloads monitor state")
+@Suite("Downloads monitor state", .serialized)
 struct DownloadsMonitorStateTests {
+    @Test("Auto Scan cannot be enabled without explicit upload consent")
+    func enablingRequiresConsent() {
+        let viewModel = DownloadsMonitorViewModel.shared
+        let oldConsent = Defaults[.didConfirmAutoScanUploads]
+        let oldBookmark = Defaults[.autoScanDownloadsFolderBookmark]
+        let oldEnabled = Defaults[.autoScanDownloadsEnabled]
+        let oldModelEnabled = viewModel.isEnabled
+        defer {
+            Defaults[.didConfirmAutoScanUploads] = oldConsent
+            Defaults[.autoScanDownloadsFolderBookmark] = oldBookmark
+            Defaults[.autoScanDownloadsEnabled] = oldEnabled
+            viewModel.isEnabled = oldModelEnabled
+        }
+        Defaults[.didConfirmAutoScanUploads] = false
+        Defaults[.autoScanDownloadsFolderBookmark] = "test-bookmark"
+        viewModel.setMonitoringEnabled(true)
+        #expect(!viewModel.isEnabled)
+        #expect(!Defaults[.autoScanDownloadsEnabled])
+    }
+
     @Test("Disabling downloads monitor completes queued items")
     func disablingDownloadsMonitorCompletesQueuedItems() {
         let viewModel = DownloadsMonitorViewModel.shared

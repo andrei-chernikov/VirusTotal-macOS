@@ -73,6 +73,19 @@ struct FilePreparationTests {
         #expect(FileManager.default.fileExists(atPath: nonZipInUUIDDirectory.path))
     }
 
+    @Test("A foreign ZIP in a UUID directory is never removed")
+    func cleanupIgnoresForeignZip() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("VirusTotalAppArchives")
+            .appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let file = directory.appendingPathComponent("foreign.zip")
+        try Data("user data".utf8).write(to: file)
+        FilePreparation.cleanupPreparedFile(at: file)
+        #expect(FileManager.default.fileExists(atPath: file.path))
+    }
+
     @Test("Regular files are not zipped")
     func regularFileIsNotZipped() async throws {
         let directory = try temporaryDirectory()

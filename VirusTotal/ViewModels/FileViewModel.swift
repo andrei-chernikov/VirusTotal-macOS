@@ -91,7 +91,7 @@ final class FileViewModel {
         }
         self.fileSize = fileSize
         self.fileName = getFileName(for: scanFileURL)
-        await getThumbnailImage(for: scanFileURL)
+        await getThumbnailImage(for: scanFileURL, token: token)
         guard !isStale(token) else { return }
         await setupFileSHA256(for: scanFileURL, token: token)
     }
@@ -280,8 +280,10 @@ final class FileViewModel {
     }
 
     private func uploadCurrentFileAndFetchReport() async throws {
-        guard try await uploadFile() else { return }
+        let token = currentCancellationToken
+        guard try await uploadFile(), !isStale(token) else { return }
         try await waitForQueuedAnalysis()
+        guard !isStale(token) else { return }
         await getNewFileReport()
     }
 
@@ -289,29 +291,12 @@ final class FileViewModel {
     /// The file report is only published once the backend finishes, so asking
     /// for it after a fixed delay raced the queue and left new files hanging.
     private func waitForQueuedAnalysis() async throws {
-        guard let analysisId = currentAnalysisId else {
-            try await Task.sleep(for: ScanPolicy.pollingInterval)
-            return
-        }
-
         let token = currentCancellationToken
-        var attempt = 0
-        while true {
-            guard !isStale(token) else { return }
-
-            let status = try? await FileAnalysis.shared.getAnalysisStatus(
-                analysisId: analysisId,
-                cancellationToken: token
-            )
-
-            switch ScanPolicy.analysisPollDecision(status: status, attempt: attempt) {
-            case .finished, .timedOut:
-                return
-            case .keepWaiting:
-                try await Task.sleep(for: ScanPolicy.pollingInterval)
-                attempt += 1
-            }
+        guard !isStale(token) else { throw CancellationError() }
+        if let analysisID = currentAnalysisId {
+            try await FileAnalysis.shared.waitForAnalysis(analysisId: analysisID, cancellationToken: token)
         }
+        guard !isStale(token) else { throw CancellationError() }
     }
 
     private func handleLargeFileEndpointFailure() {
@@ -395,7 +380,7 @@ final class FileViewModel {
     }
 
     /// Given a fileURL, generate a thumbnail icon and pass it to the viewModel
-    private func getThumbnailImage(for fileURL: URL) async {
+    private func getThumbnailImage(for fileURL: URL, token: FileAnalysisCancellationToken) async {
         let selectedFileURL: URL = fileURL
         let size = CGSize(width: 50, height: 50)
         let scale = NSScreen.main?.backingScaleFactor ?? 1.0
@@ -406,6 +391,7 @@ final class FileViewModel {
 
         do {
             let thumbnail = try await QLThumbnailGenerator.shared.generateBestRepresentation(for: request)
+            guard !isStale(token) else { return }
             self.thumbnailImage = thumbnail.nsImage
         } catch {
             log.warning("Thumbnail Error: \(error)")
@@ -452,6 +438,13 @@ final class FileViewModel {
         self.numberOfRetries = 0
         self.uploadProgress = 0.0
         self.inputSHA256 = ""
+        self.thumbnailImage = nil
+        self.lastAnalysisStats = nil
+        self.typeDescription = nil
+        self.lastAnalysisDate = nil
+        self.reputation = nil
+        self.uniqueSources = nil
+        self.errorMessage = nil
     }
 
     private func cancelCurrentRequest() {

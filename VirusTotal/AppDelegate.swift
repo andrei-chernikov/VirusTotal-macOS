@@ -13,6 +13,7 @@ import UserNotifications
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var openMainWindowAction: (() -> Void)?
+    var shouldShowMainWindowOnLaunch = false
 
     private var statusItem: NSStatusItem?
     private var fallbackMainWindow: NSWindow?
@@ -20,17 +21,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private let notificationDelegate = NotificationCenterDelegate()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        guard !AppRuntime.isRunningTests else { return }
         NSApp.servicesProvider = ServiceProvider()
         configureBackgroundMode(shouldApplyAccessoryPolicy: true)
         observeBackgroundModeChanges()
         UNUserNotificationCenter.current().delegate = notificationDelegate
+        DownloadsMonitorViewModel.shared.startIfNeeded()
     }
 
     func applicationDidUpdate(_ notification: Notification) {
         guard let mainWindow = NSApp.findWindow(WindowID.main) else { return }
         mainWindow.delegate = self
 
-        if Defaults[.backgroundMonitoringMode], !didHideInitialBackgroundWindow {
+        if Defaults[.backgroundMonitoringMode], !shouldShowMainWindowOnLaunch, !didHideInitialBackgroundWindow {
             didHideInitialBackgroundWindow = true
             mainWindow.orderOut(nil)
         }

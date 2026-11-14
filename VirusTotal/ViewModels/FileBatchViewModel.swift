@@ -66,6 +66,7 @@ final class FileBatchViewModel {
         !preparations.isEmpty || batchFiles.contains { $0.status == .preparingArchive }
     }
 
+    private var preparationGeneration = UUID()
     private var preparations: [UUID: FilePreparationTask] = [:]
     private var processingTasks: [UUID: Task<Void, Never>] = [:]
     private var cancellationTokens: [UUID: FileAnalysisCancellationToken] = [:]
@@ -87,7 +88,9 @@ final class FileBatchViewModel {
     // MARK: - Public Methods
 
     func addFiles(_ urls: [URL]) async {
+        let generation = preparationGeneration
         for url in urls {
+            guard generation == preparationGeneration, !Task.isCancelled else { return }
             await addFile(url)
         }
     }
@@ -108,6 +111,7 @@ final class FileBatchViewModel {
     }
 
     func clearAllFiles() {
+        preparationGeneration = UUID()
         cancelAllProcessing()
         preparations.values.forEach { $0.task.cancel() }
         preparations.removeAll()
@@ -422,9 +426,8 @@ final class FileBatchViewModel {
         do {
             try Task.checkCancellation()
             try await refreshPreparedFile(for: batchFile)
-            defer {
-                FilePreparation.cleanupPreparedFile(at: batchFile.preparedFileURL)
-            }
+            let preparedURL = batchFile.preparedFileURL
+            defer { FilePreparation.cleanupPreparedFile(at: preparedURL) }
 
             if try await handleExistingReport(for: batchFile, cancellationToken: cancellationToken) {
                 return
@@ -432,11 +435,13 @@ final class FileBatchViewModel {
 
             try await uploadAndAnalyze(batchFile, cancellationToken: cancellationToken)
         } catch is CancellationError {
-            if batchFiles.contains(where: { $0.id == batchFile.id }) {
+            if cancellationTokens[batchFile.id] === cancellationToken,
+               batchFiles.contains(where: { $0.id == batchFile.id }) {
                 batchFile.status = .pending
                 batchFile.uploadProgress = 0.0
             }
         } catch {
+            guard cancellationTokens[batchFile.id] === cancellationToken else { return }
             batchFile.status = .failed
             batchFile.errorMessage = error.displayMessageWithCode
             log.error(batchFile.errorMessage ?? "Unknown Error")
@@ -489,10 +494,10 @@ final class FileBatchViewModel {
             }
         }
 
-        let uploadSuccess = try await uploadFile(batchFile, cancellationToken: cancellationToken)
+        let uploadResult = try await uploadFile(batchFile, cancellationToken: cancellationToken)
         try Task.checkCancellation()
 
-        guard uploadSuccess else {
+        guard uploadResult.uploadSuccess == true else {
             batchFile.status = .failed
             batchFile.errorMessage = "Upload Failed"
             log.error("Upload Failed")
@@ -502,7 +507,9 @@ final class FileBatchViewModel {
         }
 
         batchFile.status = .analyzing
-        try await Task.sleep(nanoseconds: 20_000_000_000) // 20 seconds
+        if let analysisID = uploadResult.analysisId {
+            try await FileAnalysis.shared.waitForAnalysis(analysisId: analysisID, cancellationToken: cancellationToken)
+        }
         try Task.checkCancellation()
         await getAnalysisResults(batchFile, cancellationToken: cancellationToken)
     }
@@ -548,7 +555,7 @@ final class FileBatchViewModel {
         }
     }
 
-    private func uploadFile(_ batchFile: BatchFile, cancellationToken: FileAnalysisCancellationToken) async throws -> Bool {
+    private func uploadFile(_ batchFile: BatchFile, cancellationToken: FileAnalysisCancellationToken) async throws -> FileUploadResult {
         var apiEndpoint = chooseUploadEndpoint(for: batchFile)
 
         // Get large file endpoint if needed
@@ -557,8 +564,7 @@ final class FileBatchViewModel {
             try Task.checkCancellation()
             guard endpointResult.getEndpointSuccess == true,
                   let largeEndpoint = endpointResult.largeFileEndpoint else {
-                log.error("Failed to get large file endpoint")
-                return false
+                throw VTError.upload(endpointResult.errorMessage ?? "Failed to get large file endpoint")
             }
             apiEndpoint = largeEndpoint
         }
@@ -577,7 +583,7 @@ final class FileBatchViewModel {
             progressHandler: progressHandler
         )
 
-        return uploadResult.uploadSuccess == true
+        return uploadResult
     }
 
     private func getAnalysisResults(_ batchFile: BatchFile, cancellationToken: FileAnalysisCancellationToken) async {
@@ -607,7 +613,7 @@ final class FileBatchViewModel {
                     return
                 }
 
-                if reportResult.getReportSuccess != true {
+                if reportResult.statusMonitor == .fail {
                     batchFile.status = .failed
                     batchFile.errorMessage = reportResult.errorMessage
                     return

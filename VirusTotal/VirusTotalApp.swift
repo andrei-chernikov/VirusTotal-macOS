@@ -78,7 +78,9 @@ struct VirusTotalApp: App {
 
     @ViewBuilder
     private var mainWindowContent: some View {
-        if miniMode {
+        if AppRuntime.isRunningTests {
+            EmptyView()
+        } else if miniMode {
             MiniModeView()
                 .frame(width: 290, height: 180)
         } else {
@@ -180,22 +182,25 @@ struct VirusTotalApp: App {
 
     // MARK: Internal
     init() {
-        APIKeychain.migrateAPIKeyFromDefaultsIfNeeded()
+        if !AppRuntime.isRunningTests {
+            APIKeychain.migrateAPIKeyFromDefaultsIfNeeded()
+        }
         // Consumed once, so a relaunch triggered from Settings lands in the
         // full window and the next launch honours Mini Mode again.
         Defaults[.showMainWindowOnNextLaunch] = false
         // Tips
         #if DEBUG
-        try? Tips.resetDatastore()
+        if !AppRuntime.isRunningTests { try? Tips.resetDatastore() }
         #endif
-        try? Tips.configure()
+        if !AppRuntime.isRunningTests { try? Tips.configure() }
         // Updater
         updaterController = SPUStandardUpdaterController(
-            startingUpdater: true,
+            startingUpdater: !AppRuntime.isRunningTests,
             updaterDelegate: nil,
             userDriverDelegate: nil)
         // Logging
         LogManager.configureLogging()
+        appDelegate.shouldShowMainWindowOnLaunch = shouldShowFullMainWindowAfterRelaunch
     }
 
     // MARK: Private
@@ -205,5 +210,16 @@ struct VirusTotalApp: App {
     private var logDirectory: URL {
         let homeDirectory = FileManager.default.homeDirectoryForCurrentUser
         return homeDirectory.appendingPathComponent("Library/Logs", isDirectory: true)
+    }
+}
+
+/// Hosted tests must not start monitoring the user's folder, migrate their
+/// API key, show onboarding or contact the updater during an automated run.
+enum AppRuntime {
+    static var isRunningTests: Bool {
+        let environment = ProcessInfo.processInfo.environment
+        return environment["XCTestConfigurationFilePath"] != nil
+            || environment["XCTestBundlePath"] != nil
+            || NSClassFromString("XCTestCase") != nil
     }
 }

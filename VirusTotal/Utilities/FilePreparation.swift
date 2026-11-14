@@ -83,6 +83,8 @@ enum FilePreparation {
         // arrived meanwhile is honoured here and the archive is discarded.
         try Task.checkCancellation()
 
+        try Data(archiveURL.lastPathComponent.utf8).write(
+            to: archiveDirectory.appendingPathComponent(".virustotal-archive"), options: .atomic)
         shouldKeepArchive = true
         return archiveURL
     }
@@ -97,20 +99,28 @@ enum FilePreparation {
         let expirationDate = Date().addingTimeInterval(-24 * 60 * 60)
         for archiveDirectory in archiveDirectories {
             let creationDate = (try? archiveDirectory.resourceValues(forKeys: [.creationDateKey]))?.creationDate ?? .distantPast
-            if creationDate < expirationDate {
-                try? FileManager.default.removeItem(at: archiveDirectory)
-            }
+            let marker = archiveDirectory.appendingPathComponent(".virustotal-archive")
+            guard creationDate < expirationDate,
+                  let name = try? String(contentsOf: marker, encoding: .utf8),
+                  name == URL(fileURLWithPath: name).lastPathComponent,
+                  ownedArchiveDirectory(for: archiveDirectory.appendingPathComponent(name)) != nil
+            else { continue }
+            try? FileManager.default.removeItem(at: archiveDirectory)
         }
     }
 
-    /// Only `<root>/<UUID>/<name>.zip`, the shape `createZipArchive` makes,
-    /// counts as ours. Anything else under the root is left alone.
+    /// Require the exact archive name recorded at creation, not just a path
+    /// shaped like an archive: foreign ZIPs under the temp root are left alone.
     private static func ownedArchiveDirectory(for fileURL: URL) -> URL? {
         let standardizedURL = fileURL.standardizedFileURL
         let directoryURL = standardizedURL.deletingLastPathComponent()
+        let markerURL = directoryURL.appendingPathComponent(".virustotal-archive")
+        let recordedName = try? String(contentsOf: markerURL, encoding: .utf8)
         guard standardizedURL.pathExtension == "zip",
               UUID(uuidString: directoryURL.lastPathComponent) != nil,
-              directoryURL.deletingLastPathComponent().path == archiveRootDirectory.standardizedFileURL.path
+              directoryURL.deletingLastPathComponent().path == archiveRootDirectory.standardizedFileURL.path,
+              (try? directoryURL.resourceValues(forKeys: [.isSymbolicLinkKey]))?.isSymbolicLink != true,
+              recordedName == standardizedURL.lastPathComponent
         else { return nil }
 
         return directoryURL

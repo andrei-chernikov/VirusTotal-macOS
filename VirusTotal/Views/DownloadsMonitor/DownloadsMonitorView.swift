@@ -16,8 +16,6 @@ struct DownloadsMonitorView: View {
     @State private var shouldEnableAfterFolderSelection = false
     @State private var existingFileCount = 0
 
-    private let scanExistingConfirmationThreshold = 10
-
     var body: some View {
         VStack(spacing: 0) {
             header
@@ -209,11 +207,7 @@ struct DownloadsMonitorView: View {
         existingFileCount = viewModel.eligibleFileCount()
         guard existingFileCount > 0 else { return }
 
-        if existingFileCount >= scanExistingConfirmationThreshold {
-            isScanExistingConfirmationPresented = true
-        } else {
-            viewModel.scanExistingFiles()
-        }
+        isScanExistingConfirmationPresented = true
     }
 }
 

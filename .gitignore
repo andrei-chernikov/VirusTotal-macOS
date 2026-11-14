@@ -4,3 +4,7 @@
 *.xcuserstate
 VirusTotal.html
 VirusTotal.dmg
+
+# Local validation outputs
+Artifacts/
+.DS_Store
