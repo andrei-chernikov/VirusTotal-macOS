@@ -215,6 +215,9 @@ struct VirusTotalApp: App {
     // MARK: Internal
     init() {
         if !AppRuntime.isRunningTests {
+            // A first-time setup must always start in the full window. The
+            // menu panel becomes available only after an explicit opt-in.
+            if Defaults[.appFirstLaunch] { Defaults[.menuBarOnly] = false }
             APIKeychain.migrateAPIKeyFromDefaultsIfNeeded()
         }
         // Consumed once, so a relaunch triggered from Settings lands in the

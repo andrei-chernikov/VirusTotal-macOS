@@ -33,7 +33,9 @@ struct MenuPanelView: View {
                 .menuStyle(.borderlessButton)
                 .fixedSize()
             }
-            .padding(8)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .background(.bar)
             Divider()
             panelActions
             NavigationStack {
@@ -54,7 +56,9 @@ struct MenuPanelView: View {
                 Spacer()
                 Button("menubar.quit") { NSApp.terminate(nil) }
             }
-            .padding(10)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(.bar)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .environment(\.inMenuPanel, true)
@@ -124,11 +128,18 @@ struct MenuPanelView: View {
     }
 
     private func sectionButton(_ item: ServiceSidebarItem) -> some View {
-        Button { select(item) } label: {
+        let selected = !router.showingSettings && currentSection == item
+        return Button { select(item) } label: {
             Label(item == .fileBatch ? "menu.panel.batch" : item.titleKey, systemImage: item.systemImageName)
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 9)
+                .padding(.vertical, 6)
+                .background(selected ? Color.accentColor.opacity(0.2) : Color.clear,
+                            in: RoundedRectangle(cornerRadius: 7))
+                .contentShape(Rectangle())
         }
-        .buttonStyle(.bordered)
-        .tint(!router.showingSettings && appState.selectedSidebarItem == item ? .accentColor : nil)
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     private var currentSection: ServiceSidebarItem {

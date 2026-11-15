@@ -70,10 +70,17 @@ struct MenuBarModeTests {
         }
     }
 
-    @Test("Initial setup and restart requests use the menu panel")
+    @Test("Panel mode starts disabled and does not inherit the old background preference")
+    func panelIsAnIndependentOptIn() {
+        #expect(!Defaults.Keys.menuBarOnly.defaultValue)
+        #expect(Defaults.Keys.menuBarOnly.name != "backgroundMonitoringMode")
+        #expect(Defaults.Keys.appFirstLaunch.defaultValue)
+    }
+
+    @Test("Initial setup stays in the normal window")
     func setupIsNotHidden() {
         withMode(true) { delegate in
-            #expect(delegate.shouldHideInitialWindow(requiresSetup: true))
+            #expect(!delegate.shouldHideInitialWindow(requiresSetup: true))
             #expect(delegate.shouldHideInitialWindow(requiresSetup: false))
             delegate.shouldShowMainWindowOnLaunch = true
             #expect(delegate.shouldHideInitialWindow(requiresSetup: false))

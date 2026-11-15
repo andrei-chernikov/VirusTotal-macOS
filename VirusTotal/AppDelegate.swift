@@ -90,7 +90,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     func shouldHideInitialWindow(requiresSetup: Bool) -> Bool {
-        Defaults[.menuBarOnly]
+        Defaults[.menuBarOnly] && !requiresSetup
     }
 
     func applyPresentationMode() {

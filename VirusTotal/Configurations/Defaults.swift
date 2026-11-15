@@ -38,8 +38,8 @@ extension Defaults.Keys {
         "downloadMonitorFileCategories",
         default: [.archives, .applications]
     )
-    // Keep the persisted key so the previous background-mode choice is preserved.
-    static let menuBarOnly = Key<Bool>("backgroundMonitoringMode", default: false)
+    // The compact panel is a separate opt-in from the old background mode.
+    static let menuBarOnly = Key<Bool>("menuBarPanelEnabled", default: false)
 
     // Advanced Settings
     static let miniMode = Key<Bool>("miniMode", default: false)
