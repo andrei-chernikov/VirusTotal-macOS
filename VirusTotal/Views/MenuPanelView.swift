@@ -112,7 +112,7 @@ struct MenuPanelView: View {
                 case .history where !history.scanEntries.isEmpty:
                     Button("history.toolbar.clear", systemImage: "trash") { showClearHistory = true }
                 case .log where !logs.logs.isEmpty:
-                    Button("history.toolbar.clear", systemImage: "trash") { logs.clearLogs() }
+                    Button("menu.panel.logs.clear", systemImage: "trash") { logs.clearLogs() }
                 default:
                     EmptyView()
                 }

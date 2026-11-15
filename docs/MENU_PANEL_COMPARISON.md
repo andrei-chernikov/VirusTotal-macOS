@@ -12,7 +12,8 @@ All DMGs use the supplied artwork in `Packaging/DMG/background.png`. Do not uplo
 
 - Full Xcode test suite: 42 tests in 10 suites, `/private/tmp/virustotal-panel-tests12.log`.
 - A separate debug app with its own bundle identifier and data was used for UI exploration. On the earlier panel size, file and folder dialogs opened and cancellation returned to the same section; switching off the mode restored a window. The selected-section mismatch found in that check was subsequently fixed.
-- The compact panel, physical left/right menu-bar clicks, results with a live account, notifications, Services/Shortcuts, and restart behavior still require hands-on validation. The automation sometimes raises the hidden host window and dismisses the status popover, so it does not prove those interactions. The user has not yet accepted the compact layout.
+- In an isolated 420×480 preview, the home, file, URL, batch, monitor, empty history, log filters, and three settings tabs were inspected. A log-clear label found during this check was corrected. This preview does not prove actual popover behavior.
+- Physical left/right menu-bar clicks, results with a live account, notifications, Services/Shortcuts, and restart behavior still require hands-on validation. The automation sometimes raises the hidden host window and dismisses the status popover, so it does not prove those interactions. The user has not yet accepted the compact layout.
 - The release script builds arm64 and x86_64, verifies the ad-hoc signature and packs the supplied background. A local ad-hoc signature does not provide Apple notarization.
 
 No GitHub update has been sent. The separate artwork proposal is in `docs/DMG_ARTWORK_PROPOSAL_DRAFT.md`.
