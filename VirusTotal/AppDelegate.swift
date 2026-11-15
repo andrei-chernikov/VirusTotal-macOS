@@ -15,7 +15,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var openMainWindowAction: (() -> Void)?
     var shouldShowMainWindowOnLaunch = false
 
-    private var statusItem: NSStatusItem?
+    private(set) var statusItem: NSStatusItem?
+    private var statusMenu: NSMenu?
     private var fallbackMainWindow: NSWindow?
     private var didHideInitialBackgroundWindow = false
     private let notificationDelegate = NotificationCenterDelegate()
@@ -23,8 +24,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard !AppRuntime.isRunningTests else { return }
         NSApp.servicesProvider = ServiceProvider()
-        configureBackgroundMode(shouldApplyAccessoryPolicy: true)
-        observeBackgroundModeChanges()
+        applyPresentationMode()
+        observeMenuBarModeChanges()
         UNUserNotificationCenter.current().delegate = notificationDelegate
         DownloadsMonitorViewModel.shared.startIfNeeded()
     }
@@ -33,7 +34,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         guard let mainWindow = NSApp.findWindow(WindowID.main) else { return }
         mainWindow.delegate = self
 
-        if Defaults[.backgroundMonitoringMode], !shouldShowMainWindowOnLaunch, !didHideInitialBackgroundWindow {
+        if shouldHideInitialWindow(requiresSetup: Defaults[.appFirstLaunch]), !didHideInitialBackgroundWindow {
             didHideInitialBackgroundWindow = true
             mainWindow.orderOut(nil)
         }
@@ -51,7 +52,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     func windowShouldClose(_ sender: NSWindow) -> Bool {
-        guard Defaults[.backgroundMonitoringMode], sender.identifier?.rawValue == WindowID.main.rawValue else {
+        guard Defaults[.menuBarOnly], sender.identifier?.rawValue == WindowID.main.rawValue else {
             return true
         }
 
@@ -60,24 +61,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         return false
     }
 
-    private func observeBackgroundModeChanges() {
+    private func observeMenuBarModeChanges() {
         NotificationCenter.default.addObserver(
-            forName: .backgroundMonitoringModeChanged,
+            forName: .menuBarModeChanged,
             object: nil,
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
-                self?.configureBackgroundMode(shouldApplyAccessoryPolicy: false)
+                self?.applyPresentationMode()
             }
         }
     }
 
-    private func configureBackgroundMode(shouldApplyAccessoryPolicy: Bool = true) {
-        if Defaults[.backgroundMonitoringMode] {
-            if shouldApplyAccessoryPolicy {
-                NSApp.setActivationPolicy(.accessory)
-            }
+    func shouldHideInitialWindow(requiresSetup: Bool) -> Bool {
+        Defaults[.menuBarOnly] && !requiresSetup && !shouldShowMainWindowOnLaunch
+    }
+
+    func applyPresentationMode() {
+        if Defaults[.menuBarOnly] {
             configureStatusItem()
+            NSApp.setActivationPolicy(.accessory)
         } else {
             NSApp.setActivationPolicy(.regular)
             removeStatusItem()
@@ -93,7 +96,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             image?.isTemplate = true
             statusItem?.button?.image = image
             statusItem?.button?.imagePosition = .imageOnly
+            statusItem?.button?.target = self
+            statusItem?.button?.action = #selector(handleStatusItemClick(_:))
+            statusItem?.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
+            statusItem?.button?.setAccessibilityLabel("VirusTotal")
         }
+        statusItem?.button?.toolTip = localizedString("menubar.status.help")
 
         let menu = NSMenu()
         menu.addItem(statusMenuItem(
@@ -111,7 +119,24 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             action: #selector(quitFromMenu),
             keyEquivalent: "q"
         ))
-        statusItem?.menu = menu
+        statusMenu = menu
+        statusItem?.menu = nil
+    }
+
+    @objc private func handleStatusItemClick(_ sender: NSStatusBarButton) {
+        let event = NSApp.currentEvent
+        if event?.type == .rightMouseUp || event?.modifierFlags.contains(.control) == true {
+            showStatusMenu()
+        } else {
+            openMainWindowFromMenu()
+        }
+    }
+
+    private func showStatusMenu() {
+        guard let statusItem, let statusMenu else { return }
+        statusItem.menu = statusMenu
+        defer { statusItem.menu = nil }
+        statusItem.button?.performClick(nil)
     }
 
     private func statusMenuItem(title: String, action: Selector, keyEquivalent: String = "") -> NSMenuItem {
@@ -128,6 +153,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         guard let statusItem else { return }
         NSStatusBar.system.removeStatusItem(statusItem)
         self.statusItem = nil
+        statusMenu = nil
     }
 
     @objc private func openMainWindowFromMenu() {
@@ -136,7 +162,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     @objc private func openSettingsFromMenu() {
-        showRegularAppUI()
+        prepareForOpeningWindow()
         NotificationCenter.default.post(name: .openSettingsRequested, object: nil)
     }
 
@@ -146,17 +172,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     private func showMainWindow() {
         didHideInitialBackgroundWindow = true
-        showRegularAppUI()
-        openMainWindowAction?()
-
-        Task { @MainActor in
+        prepareForOpeningWindow()
+        if let openMainWindowAction {
+            openMainWindowAction()
+            if let window = NSApp.findWindow(WindowID.main) {
+                bringWindowToFront(window)
+            }
+        } else {
             showExistingMainWindowOrFallback()
         }
     }
 
     private func showExistingMainWindowOrFallback() {
-        DownloadsMonitorViewModel.shared.startIfNeeded()
-
         if let mainWindow = NSApp.findWindow(WindowID.main) {
             mainWindow.delegate = self
             bringWindowToFront(mainWindow)
@@ -203,7 +230,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     private func bringWindowToFront(_ window: NSWindow) {
-        showRegularAppUI()
+        prepareForOpeningWindow()
 
         if window.isMiniaturized {
             window.deminiaturize(nil)
@@ -214,8 +241,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         NSApp.activate(ignoringOtherApps: true)
     }
 
-    private func showRegularAppUI() {
-        NSApp.setActivationPolicy(.regular)
+    func prepareForOpeningWindow() {
+        didHideInitialBackgroundWindow = true
+        NSApp.setActivationPolicy(Defaults[.menuBarOnly] ? .accessory : .regular)
         NSApp.unhide(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
@@ -242,7 +270,6 @@ final class NotificationCenterDelegate: NSObject, UNUserNotificationCenterDelega
             if let sha256 { payload["sha256"] = sha256 }
 
             DownloadsMonitorViewModel.shared.handleNotificationSelection(filePath: filePath)
-            NSApp.setActivationPolicy(.regular)
             NSApp.activate(ignoringOtherApps: true)
             AppState.shared.selectedSidebarItem = .downloadsMonitor
             NotificationCenter.default.post(name: .openMainWindowRequested, object: nil)
@@ -256,7 +283,7 @@ final class NotificationCenterDelegate: NSObject, UNUserNotificationCenterDelega
 }
 
 extension Notification.Name {
-    static let backgroundMonitoringModeChanged = Notification.Name("backgroundMonitoringModeChanged")
+    static let menuBarModeChanged = Notification.Name("menuBarModeChanged")
     static let openMainWindowRequested = Notification.Name("openMainWindowRequested")
     static let openSettingsRequested = Notification.Name("openSettingsRequested")
     static let downloadsMonitorFileRequested = Notification.Name("downloadsMonitorFileRequested")

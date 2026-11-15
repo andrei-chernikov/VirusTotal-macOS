@@ -30,9 +30,10 @@ struct SettingsViewItem: View {
                     Text(subtitleText)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            .frame(height: 20)
+            .frame(minHeight: 20)
         }
     }
 }

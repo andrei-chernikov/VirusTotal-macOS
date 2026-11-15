@@ -31,9 +31,11 @@ struct VirusTotalApp: App {
                     }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: .openMainWindowRequested)) { _ in
+                    appDelegate.prepareForOpeningWindow()
                     openWindow(id: WindowID.main.rawValue)
                 }
                 .onReceive(NotificationCenter.default.publisher(for: .openSettingsRequested)) { _ in
+                    appDelegate.prepareForOpeningWindow()
                     openSettings()
                 }
         }
@@ -106,7 +108,10 @@ struct VirusTotalApp: App {
     // MARK: Menubar Items
     @ViewBuilder
     var openMainWindow: some View {
-        Button {openWindow(id: "main")} label: {
+        Button {
+            appDelegate.prepareForOpeningWindow()
+            openWindow(id: WindowID.main.rawValue)
+        } label: {
             Text("menubar.open.main")
         }
         .keyboardShortcut("n", modifiers: .command)
@@ -206,7 +211,7 @@ struct VirusTotalApp: App {
     // MARK: Private
     private let updaterController: SPUStandardUpdaterController
     private let feedbackURL = URL(string: "https://github.com/Jerry23011/VirusTotal-macOS/issues/new/choose")!
-    private var miniMode: Bool { Defaults[.miniMode] && !shouldShowFullMainWindowAfterRelaunch }
+    private var miniMode: Bool { Defaults[.miniMode] && !shouldShowFullMainWindowAfterRelaunch && !appFirstLaunch }
     private var logDirectory: URL {
         let homeDirectory = FileManager.default.homeDirectoryForCurrentUser
         return homeDirectory.appendingPathComponent("Library/Logs", isDirectory: true)

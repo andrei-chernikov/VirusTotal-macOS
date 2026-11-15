@@ -1,6 +1,90 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "settings.advanced.menubar_only" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menu Bar Only"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Только строка меню"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "machine_translated",
+            "value": "Pouze řádek nabídek"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "machine_translated",
+            "value": "仅菜单栏"
+          }
+        }
+      }
+    },
+    "settings.advanced.menubar_only.subtitle" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Dock icon. Click the menu bar icon to open the app; right-click for Settings and Quit."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Без значка в Dock. Левый клик по значку — окно, правый — настройки и выход."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "machine_translated",
+            "value": "Bez ikony v Docku. Kliknutím otevřete aplikaci, pravým kliknutím nastavení a ukončení."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "machine_translated",
+            "value": "不显示 Dock 图标。单击菜单栏图标打开应用，右键单击打开设置或退出。"
+          }
+        }
+      }
+    },
+    "menubar.status.help" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Click to open VirusTotal. Right-click for Settings and Quit."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нажмите, чтобы открыть VirusTotal. Правый клик — настройки и выход."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "machine_translated",
+            "value": "Kliknutím otevřete VirusTotal. Pravým kliknutím zobrazíte nastavení a ukončení."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "machine_translated",
+            "value": "单击打开 VirusTotal。右键单击打开设置或退出。"
+          }
+        }
+      }
+    },
     "quota.error.unavailable" : {
       "localizations": {
         "en": {
