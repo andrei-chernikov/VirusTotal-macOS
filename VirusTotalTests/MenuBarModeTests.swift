@@ -1,6 +1,7 @@
 import AppKit
 import Defaults
 import Testing
+import SwiftUI
 @testable import VirusTotal
 
 @MainActor
@@ -49,24 +50,33 @@ struct MenuBarModeTests {
             #expect(delegate.statusItem?.menu == nil)
             #expect(delegate.statusItem?.button?.action != nil)
             #expect(delegate.statusItem?.button?.target === delegate)
-            var opens = 0
-            delegate.openMainWindowAction = { opens += 1 }
+            delegate.menuPanelContent = { AnyView(Text("Test panel")) }
             let button = delegate.statusItem?.button
             if let action = button?.action {
                 NSApp.sendAction(action, to: button?.target, from: button)
             }
-            #expect(opens == 1)
+            #expect(delegate.isMenuPanelPrepared)
             #expect(NSApp.activationPolicy() == .accessory)
         }
     }
 
-    @Test("Initial setup and an explicit restart request remain visible in menu bar mode")
+    @Test("Settings requested on first opening selects settings before the panel appears")
+    func settingsRouteIsSetBeforePresentation() {
+        withMode(true) { delegate in
+            delegate.menuPanelContent = { AnyView(Text("Test panel")) }
+            delegate.showMenuPanel(settings: true)
+            #expect(delegate.menuPanelRouter.showingSettings)
+            #expect(delegate.isMenuPanelPrepared)
+        }
+    }
+
+    @Test("Initial setup and restart requests use the menu panel")
     func setupIsNotHidden() {
         withMode(true) { delegate in
-            #expect(!delegate.shouldHideInitialWindow(requiresSetup: true))
+            #expect(delegate.shouldHideInitialWindow(requiresSetup: true))
             #expect(delegate.shouldHideInitialWindow(requiresSetup: false))
             delegate.shouldShowMainWindowOnLaunch = true
-            #expect(!delegate.shouldHideInitialWindow(requiresSetup: false))
+            #expect(delegate.shouldHideInitialWindow(requiresSetup: false))
         }
     }
 

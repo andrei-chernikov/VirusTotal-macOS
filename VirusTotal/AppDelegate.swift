@@ -14,6 +14,10 @@ import UserNotifications
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var openMainWindowAction: (() -> Void)?
     var shouldShowMainWindowOnLaunch = false
+    let menuPanelRouter = MenuPanelRouter()
+    var menuPanelContent: (() -> AnyView)?
+    private var menuPanel: NSPopover?
+    var isMenuPanelPrepared: Bool { menuPanel != nil }
 
     private(set) var statusItem: NSStatusItem?
     private var statusMenu: NSMenu?
@@ -26,6 +30,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         NSApp.servicesProvider = ServiceProvider()
         applyPresentationMode()
         observeMenuBarModeChanges()
+        observePanelModalChanges()
         UNUserNotificationCenter.current().delegate = notificationDelegate
         DownloadsMonitorViewModel.shared.startIfNeeded()
     }
@@ -46,7 +51,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         if !flag {
-            showMainWindow()
+            if Defaults[.menuBarOnly] { showMenuPanel() } else { showMainWindow() }
         }
         return true
     }
@@ -73,17 +78,34 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
     }
 
+    private func observePanelModalChanges() {
+        NotificationCenter.default.addObserver(
+            forName: .menuPanelModalChanged, object: nil, queue: .main
+        ) { [weak self] notification in
+            let isPresented = notification.object as? Bool ?? false
+            MainActor.assumeIsolated {
+                self?.menuPanel?.behavior = isPresented ? .applicationDefined : .transient
+            }
+        }
+    }
+
     func shouldHideInitialWindow(requiresSetup: Bool) -> Bool {
-        Defaults[.menuBarOnly] && !requiresSetup && !shouldShowMainWindowOnLaunch
+        Defaults[.menuBarOnly]
     }
 
     func applyPresentationMode() {
         if Defaults[.menuBarOnly] {
             configureStatusItem()
             NSApp.setActivationPolicy(.accessory)
+            if menuPanelContent != nil {
+                NSApp.windows.filter { $0.isVisible && $0 != statusItem?.button?.window }.forEach { $0.orderOut(nil) }
+                showMenuPanel()
+            }
         } else {
+            menuPanel?.close()
             NSApp.setActivationPolicy(.regular)
             removeStatusItem()
+            if menuPanelContent != nil { showMainWindow() }
             didHideInitialBackgroundWindow = false
         }
     }
@@ -157,13 +179,37 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     @objc private func openMainWindowFromMenu() {
-        showMainWindow()
-        NotificationCenter.default.post(name: .openMainWindowRequested, object: nil)
+        if Defaults[.menuBarOnly] {
+            if menuPanel?.isShown == true { menuPanel?.close() } else { showMenuPanel() }
+        } else {
+            showMainWindow()
+        }
+    }
+
+    func showMenuPanel(settings: Bool = false) {
+        guard let button = statusItem?.button, let menuPanelContent else { return }
+        if settings { menuPanelRouter.showingSettings = true }
+        if menuPanel == nil {
+            let popover = NSPopover()
+            popover.behavior = .transient
+            popover.contentViewController = NSHostingController(rootView: menuPanelContent())
+            menuPanel = popover
+        }
+        guard let menuPanel else { return }
+        let visible = button.window?.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
+        menuPanel.contentSize = NSSize(width: min(420, max(300, visible.width - 24)),
+                                       height: min(480, max(300, visible.height - 48)))
+        if !menuPanel.isShown { menuPanel.show(relativeTo: button.bounds, of: button, preferredEdge: .minY) }
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     @objc private func openSettingsFromMenu() {
-        prepareForOpeningWindow()
-        NotificationCenter.default.post(name: .openSettingsRequested, object: nil)
+        if Defaults[.menuBarOnly] {
+            showMenuPanel(settings: true)
+        } else {
+            prepareForOpeningWindow()
+            NotificationCenter.default.post(name: .openSettingsRequested, object: nil)
+        }
     }
 
     @objc private func quitFromMenu() {
@@ -283,6 +329,7 @@ final class NotificationCenterDelegate: NSObject, UNUserNotificationCenterDelega
 }
 
 extension Notification.Name {
+    static let menuPanelModalChanged = Notification.Name("menuPanelModalChanged")
     static let menuBarModeChanged = Notification.Name("menuBarModeChanged")
     static let openMainWindowRequested = Notification.Name("openMainWindowRequested")
     static let openSettingsRequested = Notification.Name("openSettingsRequested")

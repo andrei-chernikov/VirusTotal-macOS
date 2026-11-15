@@ -9,6 +9,7 @@ import SwiftUI
 import Defaults
 
 struct ContentView: View {
+    @Bindable private var appState = AppState.shared
     @State private var columnVisibility: NavigationSplitViewVisibility = .doubleColumn
 
     var body: some View {
@@ -28,15 +29,14 @@ struct ContentView: View {
     // MARK: ViewBuilder
     @ViewBuilder
     private var detail: some View {
-        switch startPage {
-        case .home:
-            HomeView()
-        case .file:
-            FileView()
-        case .url:
-            URLView()
-        case .fileBatch:
-            FileBatchView()
+        switch appState.selectedSidebarItem ?? startPageItem {
+        case .home: HomeView()
+        case .fileUpload: FileView()
+        case .urlLookup: URLView()
+        case .fileBatch: FileBatchView()
+        case .downloadsMonitor: DownloadsMonitorView()
+        case .history: ScanHistoryView()
+        case .log: LogView()
         }
     }
 
@@ -56,7 +56,14 @@ struct ContentView: View {
     }
 
     // MARK: Private
-    private var startPage: NavigationItem { Defaults[.startPage] }
+    private var startPageItem: ServiceSidebarItem {
+        switch Defaults[.startPage] {
+        case .home: .home
+        case .file: .fileUpload
+        case .url: .urlLookup
+        case .fileBatch: .fileBatch
+        }
+    }
 }
 
  #Preview {

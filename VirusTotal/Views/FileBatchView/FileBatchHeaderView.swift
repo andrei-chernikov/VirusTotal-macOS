@@ -10,10 +10,12 @@ import SwiftUI
 struct FileBatchHeaderView: View {
     private var viewModel = FileBatchViewModel.shared
 
+    @Environment(\.inMenuPanel) private var inMenuPanel
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("filebatchview.title")
-                .font(.title)
+                .font(inMenuPanel ? .title2 : .title)
                 .frame(maxWidth: .infinity, maxHeight: 0, alignment: .leading)
                 .padding(.top)
 

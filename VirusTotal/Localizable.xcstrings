@@ -2,59 +2,33 @@
   "sourceLanguage" : "en",
   "strings" : {
     "settings.advanced.menubar_only" : {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Menu Bar Only"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Только строка меню"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "machine_translated",
-            "value": "Pouze řádek nabídek"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "machine_translated",
-            "value": "仅菜单栏"
-          }
-        }
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Menu Bar Interface" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Интерфейс в строке меню" } }
       }
     },
     "settings.advanced.menubar_only.subtitle" : {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No Dock icon. Click the menu bar icon to open the app; right-click for Settings and Quit."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Без значка в Dock. Левый клик по значку — окно, правый — настройки и выход."
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "machine_translated",
-            "value": "Bez ikony v Docku. Kliknutím otevřete aplikaci, pravým kliknutím nastavení a ukončení."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "machine_translated",
-            "value": "不显示 Dock 图标。单击菜单栏图标打开应用，右键单击打开设置或退出。"
-          }
-        }
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Open all features from the menu bar. The Dock icon is hidden." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Все функции доступны из строки меню. Значок в Dock скрыт." } }
+      }
+    },
+    "menu.panel.batch" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Batch" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Пакет" } }
+      }
+    },
+    "menu.panel.mini.disabled" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Mini Mode is available in the regular window." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Мини-режим доступен в обычном окне." } }
+      }
+    },
+    "menu.panel.more" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "More" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ещё" } }
       }
     },
     "menubar.status.help" : {

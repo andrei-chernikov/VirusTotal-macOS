@@ -80,7 +80,6 @@ struct GeneralTab: View {
         }
         .controlSize(.small)
         .formStyle(.grouped)
-        .scrollDisabled(true)
     }
 
     // MARK: Internal

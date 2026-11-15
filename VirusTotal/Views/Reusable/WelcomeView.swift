@@ -11,16 +11,17 @@ import SwiftUI
 struct WelcomeView: View {
     let title: LocalizedStringKey
     let systemImage: String
+    @Environment(\.inMenuPanel) private var inMenuPanel
 
     var body: some View {
         VStack(alignment: .center) {
             Image(systemName: systemImage)
-                .font(.system(size: 80))
+                .font(.system(size: inMenuPanel ? 44 : 80))
                 .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(Color.accentColor)
             Text(title)
                 .font(.title3.bold())
-                .padding(.top)
+                .padding(.top, inMenuPanel ? 6 : 16)
         }
     }
 }

@@ -10,20 +10,28 @@ import SwiftUI
 struct FileReportView: View {
     private var viewModel = FileViewModel.shared
 
+    @Environment(\.inMenuPanel) private var inMenuPanel
+
     var body: some View {
         VStack {
             Form {
-                HStack(alignment: .center) {
-                    Spacer()
-                    FileTypeView()
-                        .padding(.trailing, 30)
-                    Spacer()
-                    FileChartView()
-                    .frame(width: 290, height: 180)
-                    .padding(.vertical, 10)
-                    .padding(.trailing, 20)
+                if inMenuPanel {
+                    VStack {
+                        FileTypeView()
+                        FileChartView().frame(maxWidth: .infinity).frame(height: 180)
+                    }
+                } else {
+                    HStack(alignment: .center) {
+                        Spacer()
+                        FileTypeView().padding(.trailing, 8)
+                        Spacer()
+                        FileChartView()
+                            .frame(width: 210, height: 150)
+                            .padding(.vertical, 10)
+                            .padding(.trailing, 20)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 let maliciousFlag: Int = viewModel.lastAnalysisStats?.malicious ?? 0
                 let totalFlag = numOfFlags(
@@ -71,7 +79,6 @@ struct FileReportView: View {
                 .padding(.trailing, 2)
             }
             .formStyle(.grouped)
-            .scrollDisabled(true)
             .scrollIndicators(.hidden)
         }
     }

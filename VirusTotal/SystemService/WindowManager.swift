@@ -6,10 +6,16 @@
 //
 
 import SwiftUI
+import Defaults
 import AppKit
 
 class WindowManager {
     @MainActor static func showURLWindow() {
+        if Defaults[.menuBarOnly] {
+            AppState.shared.selectedSidebarItem = .urlLookup
+            NotificationCenter.default.post(name: .openMainWindowRequested, object: nil)
+            return
+        }
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 550, height: 530),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
@@ -26,6 +32,11 @@ class WindowManager {
     }
 
     @MainActor static func showFileWindow() {
+        if Defaults[.menuBarOnly] {
+            AppState.shared.selectedSidebarItem = .fileUpload
+            NotificationCenter.default.post(name: .openMainWindowRequested, object: nil)
+            return
+        }
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 550, height: 530),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],

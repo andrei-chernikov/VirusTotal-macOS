@@ -28,7 +28,8 @@ struct SettingsView: View {
                     Label("settings.advanced", systemImage: "gearshape.2")
                 }
         }
-        .frame(width: 500, height: 400)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+
     }
 
     // MARK: Internal

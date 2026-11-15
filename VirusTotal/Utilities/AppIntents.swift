@@ -31,6 +31,7 @@ struct ScanFileIntent: AppIntent {
         }
 
         AppState.shared.selectedSidebarItem = .fileUpload
+        NotificationCenter.default.post(name: .openMainWindowRequested, object: nil)
         await FileViewModel.shared.startFileImport(fileURL).value
 
         return .result()

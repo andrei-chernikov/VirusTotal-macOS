@@ -17,6 +17,7 @@ struct VirusTotalApp: App {
     @Environment(\.openSettings) private var openSettings
     @Environment(\.openURL) private var openURL
     @Default(.appFirstLaunch) private var appFirstLaunch: Bool
+    @Default(.menuBarOnly) private var menuBarOnly: Bool
     @State private var shouldShowFullMainWindowAfterRelaunch = Defaults[.showMainWindowOnNextLaunch]
     @State private var scanHistoryManager = ScanHistoryManager.shared
     @State private var downloadsMonitor = DownloadsMonitorViewModel.shared
@@ -26,17 +27,31 @@ struct VirusTotalApp: App {
         Window("VirusTotal for macOS", id: WindowID.main.rawValue) {
             mainWindowContent
                 .task(priority: .background) {
+                    appDelegate.menuPanelContent = { AnyView(MenuPanelView(updater: updaterController.updater, router: appDelegate.menuPanelRouter)) }
                     appDelegate.openMainWindowAction = {
                         openWindow(id: WindowID.main.rawValue)
                     }
+                    if Defaults[.menuBarOnly] {
+                        NSApp.findWindow(WindowID.main)?.orderOut(nil)
+                        appDelegate.showMenuPanel()
+                    }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: .openMainWindowRequested)) { _ in
-                    appDelegate.prepareForOpeningWindow()
-                    openWindow(id: WindowID.main.rawValue)
+                    if Defaults[.menuBarOnly] {
+                        appDelegate.menuPanelRouter.showingSettings = false
+                        appDelegate.showMenuPanel()
+                    } else {
+                        appDelegate.prepareForOpeningWindow()
+                        openWindow(id: WindowID.main.rawValue)
+                    }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: .openSettingsRequested)) { _ in
-                    appDelegate.prepareForOpeningWindow()
-                    openSettings()
+                    if Defaults[.menuBarOnly] {
+                        appDelegate.showMenuPanel(settings: true)
+                    } else {
+                        appDelegate.prepareForOpeningWindow()
+                        openSettings()
+                    }
                 }
         }
         .windowResizability(.contentSize)
@@ -53,6 +68,7 @@ struct VirusTotalApp: App {
 
         Settings {
             SettingsView(updater: updaterController.updater)
+                .frame(width: 500, height: 400)
         }
         .commands {
             CommandGroup(replacing: .appInfo) {
@@ -82,6 +98,13 @@ struct VirusTotalApp: App {
     private var mainWindowContent: some View {
         if AppRuntime.isRunningTests {
             EmptyView()
+        } else if menuBarOnly {
+            Color.clear.frame(width: 1, height: 1)
+                .task {
+                    do { try await scanHistoryManager.load() } catch { log.error("Error loading scan entries: \(error)") }
+                    await NotificationManager.requestAuthorization()
+                    downloadsMonitor.startIfNeeded()
+                }
         } else if miniMode {
             MiniModeView()
                 .frame(width: 290, height: 180)
@@ -109,8 +132,12 @@ struct VirusTotalApp: App {
     @ViewBuilder
     var openMainWindow: some View {
         Button {
-            appDelegate.prepareForOpeningWindow()
-            openWindow(id: WindowID.main.rawValue)
+            if Defaults[.menuBarOnly] {
+                appDelegate.showMenuPanel()
+            } else {
+                appDelegate.prepareForOpeningWindow()
+                openWindow(id: WindowID.main.rawValue)
+            }
         } label: {
             Text("menubar.open.main")
         }
@@ -211,7 +238,7 @@ struct VirusTotalApp: App {
     // MARK: Private
     private let updaterController: SPUStandardUpdaterController
     private let feedbackURL = URL(string: "https://github.com/Jerry23011/VirusTotal-macOS/issues/new/choose")!
-    private var miniMode: Bool { Defaults[.miniMode] && !shouldShowFullMainWindowAfterRelaunch && !appFirstLaunch }
+    private var miniMode: Bool { !Defaults[.menuBarOnly] && Defaults[.miniMode] && !shouldShowFullMainWindowAfterRelaunch && !appFirstLaunch }
     private var logDirectory: URL {
         let homeDirectory = FileManager.default.homeDirectoryForCurrentUser
         return homeDirectory.appendingPathComponent("Library/Logs", isDirectory: true)

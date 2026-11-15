@@ -11,10 +11,12 @@ struct URLView: View {
     @State private var viewModel = URLViewModel.shared
     @FocusState private var isTextFieldFocused: Bool
 
+    @Environment(\.inMenuPanel) private var inMenuPanel
+
     var body: some View {
         VStack {
             Text("urlview.title")
-                .font(.title)
+                .font(inMenuPanel ? .title2 : .title)
                 .frame(maxWidth: .infinity, maxHeight: 0, alignment: .leading)
                 .padding(.vertical)
             // Textfield and Scan button
@@ -41,34 +43,38 @@ struct URLView: View {
                 Spacer()
                 WelcomeView(title: "urlview.welcome.title",
                             systemImage: "network.badge.shield.half.filled")
-                .padding(.bottom, 60)
+                .padding(.bottom, inMenuPanel ? 8 : 60)
             case .loading, .uploading, .analyzing:
                 LoadingView()
             case .success:
                 VStack(alignment: .center) {
                     Form {
-                        HStack(alignment: .center) {
-                            VStack(alignment: .leading) {
-                                // Final URL Host
+                        if inMenuPanel {
+                            VStack(alignment: .leading, spacing: 8) {
                                 URLInfoView(finalURLHost: viewModel.finalURLHost)
-                                // Categories View
                                 URLCategoriesView()
-                                    .frame(maxWidth: 300)
-                                    .padding(.top, 3)
-                                Spacer()
+                                URLChartView(analysisStats: viewModel.analysisStats ?? defaultAnalysisStats)
+                                    .frame(maxWidth: .infinity).frame(height: 150)
                             }
-                            .lineLimit(1)
-                            .padding(.top, 20)
-                            .padding(.leading, 19)
-
-                            Spacer()
-
-                            URLChartView(analysisStats: viewModel.analysisStats ?? defaultAnalysisStats)
-                            .frame(width: 250, height: 150)
-                            .padding(.vertical, 10)
-                            .padding(.trailing, 20)
+                            .padding(12)
+                        } else {
+                            HStack(alignment: .center) {
+                                VStack(alignment: .leading) {
+                                    URLInfoView(finalURLHost: viewModel.finalURLHost)
+                                    URLCategoriesView().frame(maxWidth: 300).padding(.top, 3)
+                                    Spacer()
+                                }
+                                .lineLimit(1)
+                                .padding(.top, 20)
+                                .padding(.leading, 19)
+                                Spacer()
+                                URLChartView(analysisStats: viewModel.analysisStats ?? defaultAnalysisStats)
+                                    .frame(width: 250, height: 150)
+                                    .padding(.vertical, 10)
+                                    .padding(.trailing, 20)
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                         let maliciousFlag: Int = viewModel.analysisStats?.malicious ?? 0
                         let totalFlag = numOfFlags(
@@ -101,7 +107,6 @@ struct URLView: View {
                             .padding(.trailing, 2)
                     }
                     .formStyle(.grouped)
-                    .scrollDisabled(true)
                     .scrollIndicators(.hidden)
                 }
             case .fail:
@@ -123,7 +128,7 @@ struct URLView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.vertical)
-        .padding(.horizontal, 20)
+        .padding(.horizontal, inMenuPanel ? 12 : 20)
         .toolbar {
             ToolbarItem(id: "reanalyzeURL",
                         placement: .automatic,

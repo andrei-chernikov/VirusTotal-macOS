@@ -8,11 +8,46 @@
 import SwiftUI
 
 struct ScanHistoryView: View {
+    var compact = false
     @State private var tableSelection: Set<ScanEntry.ID> = []
     @State private var showingClearConfirmation = false
     private var historyManager = ScanHistoryManager.shared
 
     var body: some View {
+        Group {
+            if compact {
+                List(historyManager.scanEntries) { entry in
+                    HStack(alignment: .top) {
+                        statusView(flag: entry.result.malicious)
+                        VStack(alignment: .leading) {
+                            Text(entry.target).lineLimit(2).textSelection(.enabled)
+                            Text("\(entry.scanType.rawValue) · \(entry.result.analysisDate) · \(entry.result.malicious)")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Text("\(entry.result.reputation)").foregroundStyle(entry.result.reputation < 0 ? .orange : .secondary)
+                    }
+                }.listStyle(.plain)
+            } else {
+                historyTable
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                if !historyManager.scanEntries.isEmpty {
+                    Button(action: showConfirmClear) { Label("history.toolbar.clear", systemImage: "trash") }
+                        .help("history.toolbar.clear.help")
+                        .keyboardShortcut(.delete, modifiers: [.command, .shift])
+                        .confirmationDialog("history.clear.confirmation.title", isPresented: $showingClearConfirmation) {
+                            Button("history.clear.confirmation.clear", role: nil, action: clearHistory)
+                            Button("history.clear.confirmation.cancel", role: .cancel) { }
+                        } message: { Text("history.clear.confirmation.message") }
+                }
+            }
+        }
+    }
+
+    private var historyTable: some View {
         Table(historyManager.scanEntries, selection: $tableSelection) {
             TableColumn("history.status") { entry in
                 statusView(flag: entry.result.malicious)
@@ -38,27 +73,6 @@ struct ScanHistoryView: View {
                     .foregroundStyle(entry.result.reputation < 0 ? .orange : .primary)
             }
             .width(min: 80, ideal: 80)
-        }
-        .toolbar {
-            ToolbarItem(placement: .automatic) {
-                if !historyManager.scanEntries.isEmpty {
-                    Button(action: showConfirmClear) {
-                        Label("history.toolbar.clear", systemImage: "trash")
-                    }
-                    .help("history.toolbar.clear.help")
-                    .keyboardShortcut(.delete, modifiers: [.command, .shift])
-                    .confirmationDialog("history.clear.confirmation.title",
-                                        isPresented: $showingClearConfirmation) {
-                        Button("history.clear.confirmation.clear",
-                               role: nil,
-                               action: clearHistory)
-                        Button("history.clear.confirmation.cancel",
-                               role: .cancel) { }
-                    } message: {
-                       Text("history.clear.confirmation.message")
-                    }
-                }
-            }
         }
     }
 

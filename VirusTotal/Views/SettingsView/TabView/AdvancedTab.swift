@@ -23,8 +23,15 @@ struct AdvancedTab: View {
                                      subtitleText: "settings.advanced.mini.restart")
                 }
                 .padding(.vertical, 4)
+                .disabled(menuBarOnly)
                 .onChange(of: miniMode) {
                     showRestartAlert = true
+                }
+
+                if menuBarOnly {
+                    Text("menu.panel.mini.disabled")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
 
                 Toggle(isOn: $menuBarOnly) {
@@ -40,7 +47,6 @@ struct AdvancedTab: View {
         }
         .controlSize(.small)
         .formStyle(.grouped)
-        .scrollDisabled(true)
         .alert("settings.restart.alert.title", isPresented: $showRestartAlert) {
             Button("settings.restart.alert.confirm") {
                 saveMiniModePreference()

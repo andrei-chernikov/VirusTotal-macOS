@@ -10,6 +10,8 @@ import SwiftUI
 struct FileUploadView: View {
     private var viewModel = FileViewModel.shared
 
+    @Environment(\.inMenuPanel) private var inMenuPanel
+
     var body: some View {
             VStack {
                 let fileSize = (viewModel.fileSize ?? 0)
@@ -18,12 +20,12 @@ struct FileUploadView: View {
                     Image(nsImage: image)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 80, height: 80)
+                        .frame(width: inMenuPanel ? 50 : 80, height: inMenuPanel ? 50 : 80)
                 } else {
                     Image(systemName: "doc.questionmark")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 80, height: 80)
+                        .frame(width: inMenuPanel ? 50 : 80, height: inMenuPanel ? 50 : 80)
                 }
 
                 Text("fileview.name.size \(viewModel.fileName ?? "n/a") \(fileSize.chooseUnit())")

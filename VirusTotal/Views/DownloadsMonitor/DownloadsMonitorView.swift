@@ -16,6 +16,8 @@ struct DownloadsMonitorView: View {
     @State private var shouldEnableAfterFolderSelection = false
     @State private var existingFileCount = 0
 
+    @Environment(\.inMenuPanel) private var inMenuPanel
+
     var body: some View {
         VStack(spacing: 0) {
             header
@@ -63,6 +65,9 @@ struct DownloadsMonitorView: View {
                 }
             }
         }
+        .onChange(of: isFolderImporterPresented) { _, presented in
+            NotificationCenter.default.post(name: .menuPanelModalChanged, object: presented)
+        }
         .onAppear {
             viewModel.startIfNeeded()
         }
@@ -75,9 +80,9 @@ struct DownloadsMonitorView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .center, spacing: 12) {
                 Image(systemName: "folder.badge.gearshape")
-                    .font(.system(size: 34))
+                    .font(.system(size: inMenuPanel ? 24 : 34))
                     .foregroundStyle(Color.accentColor)
-                    .frame(width: 44)
+                    .frame(width: inMenuPanel ? 30 : 44)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("sidebar.downloadsmonitor")
@@ -105,15 +110,14 @@ struct DownloadsMonitorView: View {
             }
 
             HStack(spacing: 10) {
-                Spacer()
-                    .frame(width: 46)
-
                 Button("downloadsmonitor.button.choose_folder", systemImage: "folder.badge.plus") {
                     isFolderImporterPresented = true
                 }
 
-                Button("downloadsmonitor.filter.placeholder", systemImage: "line.3.horizontal.decrease.circle") {
+                Button {
                     isFileTypeSettingsPresented.toggle()
+                } label: {
+                    Image(systemName: "line.3.horizontal.decrease.circle")
                 }
                 .popover(isPresented: $isFileTypeSettingsPresented) {
                     fileTypeSettings
@@ -127,7 +131,7 @@ struct DownloadsMonitorView: View {
                 Spacer(minLength: 0)
             }
         }
-        .padding(20)
+        .padding(inMenuPanel ? 10 : 20)
     }
 
     private var fileTypeSettings: some View {

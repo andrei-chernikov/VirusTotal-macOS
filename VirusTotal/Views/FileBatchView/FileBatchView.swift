@@ -12,6 +12,8 @@ struct FileBatchView: View {
     @State private var isFileImporterPresent: Bool = false
     @State private var isFileDropped: Bool = false
 
+    @Environment(\.inMenuPanel) private var inMenuPanel
+
     var body: some View {
         ZStack {
             VStack(spacing: 0) {
@@ -26,7 +28,7 @@ struct FileBatchView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.vertical)
-            .padding(.horizontal, 20)
+            .padding(.horizontal, inMenuPanel ? 12 : 20)
             .onDrop(of: [.fileURL], delegate: AnyDropDelegate(
                 isTargeted: $isFileDropped.animation(.linear(duration: 0.1)),
                 onValidate: { dropInfo in
@@ -66,6 +68,9 @@ struct FileBatchView: View {
                 }
             }
         }
+        .onChange(of: isFileImporterPresent) { _, presented in
+            NotificationCenter.default.post(name: .menuPanelModalChanged, object: presented)
+        }
     }
 
     // MARK: - View Components
@@ -84,7 +89,7 @@ struct FileBatchView: View {
             Spacer()
 
             Image(systemName: "document.on.document")
-                .font(.system(size: 80))
+                .font(.system(size: inMenuPanel ? 44 : 80))
                 .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(Color.accentColor)
 

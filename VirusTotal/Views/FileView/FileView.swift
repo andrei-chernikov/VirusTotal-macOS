@@ -15,11 +15,13 @@ struct FileView: View {
     @State private var isFileImporterPresent: Bool = false
     @State private var isFileDropped: Bool = false
 
+    @Environment(\.inMenuPanel) private var inMenuPanel
+
     var body: some View {
         ZStack {
             VStack {
                 Text("fileview.title")
-                    .font(.title)
+                    .font(inMenuPanel ? .title2 : .title)
                     .frame(maxWidth: .infinity, maxHeight: 0, alignment: .leading)
                     .padding(.vertical)
                 switch viewModel.statusMonitor {
@@ -27,7 +29,7 @@ struct FileView: View {
                     Spacer()
                     VStack(alignment: .center) {
                         Image(systemName: "doc.text.magnifyingglass")
-                            .font(.system(size: 80))
+                            .font(.system(size: inMenuPanel ? 44 : 80))
                             .symbolRenderingMode(.hierarchical)
                             .foregroundStyle(Color.accentColor)
                         OpenFinderButton(title: "fileview.button.open.finder",
@@ -55,7 +57,7 @@ struct FileView: View {
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
-                    .padding(.bottom, 60)
+                    .padding(.bottom, inMenuPanel ? 8 : 60)
                 case .loading:
                     LoadingView()
                 case .success:
@@ -63,7 +65,7 @@ struct FileView: View {
                 case .upload, .uploading:
                     Spacer()
                     FileUploadView()
-                        .padding(.bottom, 60)
+                        .padding(.bottom, inMenuPanel ? 8 : 60)
                 case .fail:
                     ErrorView(title: "errorview.title",
                               errorMessage: viewModel.errorMessage ?? "")
@@ -85,7 +87,7 @@ struct FileView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.vertical)
-            .padding(.horizontal, 20)
+            .padding(.horizontal, inMenuPanel ? 12 : 20)
             .onDrop(of: [.fileURL], delegate: AnyDropDelegate(
                 isTargeted: $isFileDropped.animation(.linear(duration: 0.1)),
                 onValidate: { dropInfo in
@@ -127,6 +129,9 @@ struct FileView: View {
                 }
             }
             UploadProgressView()
+        }
+        .onChange(of: isFileImporterPresent) { _, presented in
+            NotificationCenter.default.post(name: .menuPanelModalChanged, object: presented)
         }
     }
 

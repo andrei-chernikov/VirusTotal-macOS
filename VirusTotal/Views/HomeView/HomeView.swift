@@ -45,7 +45,6 @@ struct HomeView: View {
         }
         .formStyle(.grouped)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .scrollDisabled(true)
         .scrollIndicators(.never)
         .task {
             await viewModel.performRequest()
