@@ -9,6 +9,8 @@ import SwiftUI
 import Defaults
 
 struct VTSetupView: View {
+    var onVerified: (() -> Void)?
+
     @State private var viewModel = QuotaStatusViewModel()
 
     @Default(.userName) private var userName: String
@@ -31,7 +33,8 @@ struct VTSetupView: View {
                 Button(action: verifyInput) {
                     buttonContent
                 }
-                .disabled(isButtonDisabled())
+                .disabled(buttonIsLoading || isButtonDisabled())
+                .frame(maxWidth: .infinity, alignment: .center)
             }
             .alert(alertTitle ?? "", isPresented: $isAlertPresented) {
                 Button("settings.api.alert.button") {
@@ -52,10 +55,14 @@ struct VTSetupView: View {
             .onChange(of: viewModel.statusSuccess) { _, newValue in
                 switch newValue {
                 case true:
-                    alertTitle = "settings.api.verify.success"
-                    alertMessage = String(localized: "settings.api.message.success")
                     buttonIsLoading = false
-                    isAlertPresented = true
+                    if let onVerified {
+                        onVerified()
+                    } else {
+                        alertTitle = "settings.api.verify.success"
+                        alertMessage = String(localized: "settings.api.message.success")
+                        isAlertPresented = true
+                    }
                 case false:
                     alertTitle = "settings.api.verify.failed"
                     alertMessage = viewModel.errorMessage ?? String(localized: "settings.api.message.failed")

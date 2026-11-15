@@ -22,7 +22,7 @@ struct LaunchView: View {
             }
             .padding(.top, 30)
             .padding(.horizontal)
-            VTSetupView()
+            VTSetupView(onVerified: dismissActions)
             Text("launchview.prompt.signup")
                 .padding(.bottom, 1)
             Text("launchview.prompt.getapi")
