@@ -148,13 +148,6 @@ struct MenuPanelView: View {
         if !router.showingSettings {
             HStack {
                 switch currentSection {
-                case .fileUpload where file.statusMonitor == .success:
-                    Button("toolbar.button.rescan", systemImage: "arrow.clockwise") {
-                        Task {
-                            file.statusMonitor = .loading
-                            await file.requestReanalyze()
-                        }
-                    }
                 case .urlLookup where url.statusMonitor == .success:
                     Button("toolbar.button.rescan", systemImage: "arrow.clockwise") {
                         url.statusMonitor = .loading

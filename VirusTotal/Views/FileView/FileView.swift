@@ -31,9 +31,14 @@ struct FileView: View {
     private var fileContent: some View {
         VStack {
             if inMenuPanel && isRequestSuccess() {
-                Text("fileview.title")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                HStack {
+                    Text("fileview.title")
+                        .font(.headline)
+                    Spacer()
+                    Button("toolbar.button.rescan", systemImage: "arrow.clockwise", action: requestReanalyze)
+                        .buttonStyle(.bordered)
+                }
+                .padding(.bottom, 2)
             } else {
                 Text("fileview.title")
                     .font(inMenuPanel ? .title2 : .title)

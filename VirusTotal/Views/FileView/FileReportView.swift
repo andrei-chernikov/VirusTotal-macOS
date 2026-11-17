@@ -13,75 +13,83 @@ struct FileReportView: View {
     @Environment(\.inMenuPanel) private var inMenuPanel
 
     var body: some View {
-        VStack {
+        if inMenuPanel {
+            ViewThatFits(in: .vertical) {
+                compactReport.fixedSize(horizontal: false, vertical: true)
+                ScrollView {
+                    compactReport
+                }
+            }
+        } else {
             Form {
-                if inMenuPanel {
-                    VStack(alignment: .leading, spacing: 8) {
-                        FileTypeView()
-                        FileChartView()
-                    }
-                    .padding(.vertical, 4)
-                } else {
-                    HStack(alignment: .center) {
-                        Spacer()
-                        FileTypeView().padding(.trailing, 8)
-                        Spacer()
-                        FileChartView()
-                            .frame(width: 210, height: 150)
-                            .padding(.vertical, 10)
-                            .padding(.trailing, 20)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-
-                let maliciousFlag: Int = viewModel.lastAnalysisStats?.malicious ?? 0
-                let totalFlag = numOfFlags(
-                    analysisStats: viewModel.lastAnalysisStats ?? defaultAnalysisStats
-                )
-
-                // Malicious/Total Flag number count message
-                Label("vendor.count.label \(maliciousFlag) \(totalFlag)",
-                      systemImage: getSystemImage())
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(getFlagCountColor())
-                .padding(.horizontal)
-
-                // Community Score count message
-                Label("community.score.label \(viewModel.reputation ?? 0)",
-                      systemImage: "person.circle.fill")
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(getCommunityScoreColor())
-                .padding(.horizontal)
-
-                // Last Analysis Date
-                Label("analysis.date.label \(viewModel.lastAnalysisDate ?? "")",
-                      systemImage: "clock.arrow.circlepath")
-                .symbolRenderingMode(.hierarchical)
-                .padding(.horizontal)
-
-                // Returned File Type Description
-                Label("fileview.file.type \(viewModel.typeDescription ?? "n/a")",
-                      systemImage: "doc.circle")
-                .symbolRenderingMode(.hierarchical)
-                .padding(.horizontal)
-
-                // Returned Unique Sources
                 HStack(alignment: .center) {
-                    Label("fileview.uniquesource.label \(viewModel.uniqueSources ?? 0)",
-                          systemImage: "mappin.circle")
-                    .symbolRenderingMode(.hierarchical)
                     Spacer()
-                    HelpButtonItemView(
-                        helpHeadline: "fileview.uniquesource.help.headline",
-                        helpDetails: "fileview.uniquesource.help.details"
-                    )
+                    FileTypeView().padding(.trailing, 8)
+                    Spacer()
+                    FileChartView()
+                        .frame(width: 210, height: 150)
+                        .padding(.vertical, 10)
+                        .padding(.trailing, 20)
                 }
-                .padding(.leading)
-                .padding(.trailing, 2)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                details
             }
             .formStyle(.grouped)
             .scrollIndicators(.hidden)
         }
+    }
+
+    private var compactReport: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            FileTypeView()
+            FileChartView()
+            Divider()
+            VStack(alignment: .leading, spacing: 5) {
+                details
+            }
+            .font(.callout)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+        .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    @ViewBuilder
+    private var details: some View {
+        let maliciousFlag = viewModel.lastAnalysisStats?.malicious ?? 0
+        let totalFlag = numOfFlags(analysisStats: viewModel.lastAnalysisStats ?? defaultAnalysisStats)
+        let inset: CGFloat = inMenuPanel ? 0 : 16
+
+        Label("fileview.vendor.count \(maliciousFlag) \(totalFlag)", systemImage: getSystemImage())
+            .symbolRenderingMode(.hierarchical)
+            .foregroundStyle(getFlagCountColor())
+            .padding(.horizontal, inset)
+
+        Label("community.score.label \(viewModel.reputation ?? 0)", systemImage: "person.circle.fill")
+            .symbolRenderingMode(.hierarchical)
+            .foregroundStyle(getCommunityScoreColor())
+            .padding(.horizontal, inset)
+
+        Label("analysis.date.label \(viewModel.lastAnalysisDate ?? "")", systemImage: "clock.arrow.circlepath")
+            .symbolRenderingMode(.hierarchical)
+            .padding(.horizontal, inset)
+
+        Label("fileview.file.type \(viewModel.typeDescription ?? "n/a")", systemImage: "doc.circle")
+            .symbolRenderingMode(.hierarchical)
+            .padding(.horizontal, inset)
+
+        HStack {
+            Label("fileview.uniquesource.label \(viewModel.uniqueSources ?? 0)", systemImage: "mappin.circle")
+                .symbolRenderingMode(.hierarchical)
+            Spacer()
+            HelpButtonItemView(
+                helpHeadline: "fileview.uniquesource.help.headline",
+                helpDetails: "fileview.uniquesource.help.details"
+            )
+        }
+        .padding(.leading, inset)
+        .padding(.trailing, 2)
     }
 
     // MARK: Private

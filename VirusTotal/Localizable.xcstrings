@@ -2920,6 +2920,34 @@
         }
       }
     },
+    "fileview.vendor.count %lld %lld" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Škodlivý soubor: %1$lld z %2$lld detekcí"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flagged as malicious by %1$lld of %2$lld vendors"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Файл пометили как вредоносный: %1$lld из %2$lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld / %2$lld 个安全厂商将该文件标记为恶意"
+          }
+        }
+      }
+    },
     "fileview.uniquesource.help.details" : {
       "localizations" : {
         "cs" : {
