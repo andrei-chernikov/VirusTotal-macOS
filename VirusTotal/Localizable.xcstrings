@@ -31,6 +31,18 @@
         "ru" : { "stringUnit" : { "state" : "translated", "value" : "Очистить журнал" } }
       }
     },
+    "menu.history.empty.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No Scan History" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "История пока пуста" } }
+      }
+    },
+    "menu.history.empty.description" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your completed scans will appear here." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Здесь появятся завершённые проверки." } }
+      }
+    },
     "menu.panel.more" : {
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "More" } },

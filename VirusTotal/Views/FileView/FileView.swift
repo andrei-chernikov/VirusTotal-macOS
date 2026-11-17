@@ -82,7 +82,7 @@ struct FileView: View {
                     Label("urlview.button.go.vt", systemImage: "arrowshape.turn.up.right.fill")
                         .symbolEffect(.bounce, value: isUploadFinished())
                 }
-                .frame(maxWidth: .infinity, alignment: .trailing)
+                .frame(maxWidth: .infinity, alignment: inMenuPanel ? .center : .trailing)
                 .disabled(!isUploadFinished())
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

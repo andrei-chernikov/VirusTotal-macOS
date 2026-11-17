@@ -15,7 +15,11 @@ struct ScanHistoryView: View {
 
     var body: some View {
         Group {
-            if compact {
+            if compact && historyManager.scanEntries.isEmpty {
+                ContentUnavailableView("menu.history.empty.title", systemImage: "clock.arrow.circlepath",
+                                       description: Text("menu.history.empty.description"))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if compact {
                 List(historyManager.scanEntries) { entry in
                     HStack(alignment: .top) {
                         statusView(flag: entry.result.malicious)

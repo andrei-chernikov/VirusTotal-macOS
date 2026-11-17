@@ -81,16 +81,22 @@ private enum TimeRangeFilter: String, CaseIterable, Identifiable {
 // MARK: - LogView
 
 struct LogView: View {
+    @Environment(\.inMenuPanel) private var inMenuPanel
     @State private var logManager  = LogManager.shared
     @State private var searchText  = ""
     @State private var levelFilter = LogLevelFilter.all
     @State private var timeFilter  = TimeRangeFilter.all
 
     var body: some View {
-        if logManager.logs.isEmpty && !hasActiveFilter {
-            LogEmptyView()
-        } else {
-            logDisplay
+        VStack(alignment: .leading, spacing: 0) {
+            if inMenuPanel {
+                Text("sidebar.log").font(.headline).padding(.horizontal, 12).padding(.top, 10)
+            }
+            if logManager.logs.isEmpty && !hasActiveFilter {
+                LogEmptyView()
+            } else {
+                logDisplay
+            }
         }
     }
 

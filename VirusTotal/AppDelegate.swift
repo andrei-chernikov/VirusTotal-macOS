@@ -196,6 +196,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             menuPanel = popover
         }
         guard let menuPanel else { return }
+        if settings { menuPanel.behavior = .transient }
         let visible = button.window?.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
         menuPanel.contentSize = NSSize(width: min(420, max(300, visible.width - 24)),
                                        height: min(480, max(300, visible.height - 48)))

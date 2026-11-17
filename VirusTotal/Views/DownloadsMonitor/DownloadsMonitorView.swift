@@ -77,8 +77,8 @@ struct DownloadsMonitorView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .center, spacing: 12) {
+        VStack(alignment: .leading, spacing: inMenuPanel ? 10 : 16) {
+            HStack(alignment: .center, spacing: inMenuPanel ? 8 : 12) {
                 Image(systemName: "folder.badge.gearshape")
                     .font(.system(size: inMenuPanel ? 24 : 34))
                     .foregroundStyle(Color.accentColor)
@@ -86,7 +86,7 @@ struct DownloadsMonitorView: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("sidebar.downloadsmonitor")
-                        .font(.title2)
+                        .font(inMenuPanel ? .headline : .title2)
                         .fontWeight(.semibold)
                     Text(viewModel.statusMessage)
                         .font(.subheadline)

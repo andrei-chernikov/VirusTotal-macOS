@@ -81,6 +81,9 @@ struct MenuPanelView: View {
         .onChange(of: firstLaunch) { _, presented in
             NotificationCenter.default.post(name: .menuPanelModalChanged, object: presented)
         }
+        .onChange(of: router.showingSettings) { _, showing in
+            if showing { NotificationCenter.default.post(name: .menuPanelModalChanged, object: false) }
+        }
         .onChange(of: appState.selectedSidebarItem) {
             router.showingSettings = false
         }
