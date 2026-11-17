@@ -15,7 +15,6 @@ struct MenuPanelView: View {
     @State private var batch = FileBatchViewModel.shared
     @State private var monitor = DownloadsMonitorViewModel.shared
     @State private var history = ScanHistoryManager.shared
-    @State private var logs = LogManager.shared
 
     var body: some View {
         VStack(spacing: 0) {
@@ -35,6 +34,7 @@ struct MenuPanelView: View {
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 8)
+            .frame(maxWidth: .infinity)
             .background(.bar)
             Divider()
             panelActions
@@ -58,9 +58,11 @@ struct MenuPanelView: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
+            .frame(maxWidth: .infinity)
             .background(.bar)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(nsColor: .windowBackgroundColor))
         .environment(\.inMenuPanel, true)
         .controlSize(.small)
         .confirmationDialog("history.clear.confirmation.title", isPresented: $showClearHistory) {
@@ -118,8 +120,6 @@ struct MenuPanelView: View {
                         .disabled(monitor.hasActiveScanItems)
                 case .history where !history.scanEntries.isEmpty:
                     Button("history.toolbar.clear", systemImage: "trash") { showClearHistory = true }
-                case .log where !logs.logs.isEmpty:
-                    Button("menu.panel.logs.clear", systemImage: "trash") { logs.clearLogs() }
                 default:
                     EmptyView()
                 }

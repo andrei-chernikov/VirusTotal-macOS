@@ -34,16 +34,6 @@ private enum LogLevelFilter: String, CaseIterable, Identifiable {
         }
     }
 
-    var emoji: String {
-        switch self {
-        case .all:                       "🗂️"
-        case .verbose:                   "🟣"
-        case .debug:                     "🟢"
-        case .info:                      "🔵"
-        case .warning:                   "🟡"
-        case .error, .critical, .fault:  "🔴"
-        }
-    }
 }
 
 // MARK: - Time Range Filter
@@ -90,7 +80,16 @@ struct LogView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if inMenuPanel {
-                Text("sidebar.log").font(.headline).padding(.horizontal, 12).padding(.top, 10)
+                HStack {
+                    Text("sidebar.log").font(.headline)
+                    Spacer()
+                    Button("menu.panel.logs.clear", systemImage: "trash", action: clearLogs)
+                        .labelStyle(.iconOnly)
+                        .buttonStyle(.borderless)
+                        .disabled(logManager.logs.isEmpty)
+                }
+                .padding(.horizontal, 12)
+                .padding(.top, 10)
             }
             if logManager.logs.isEmpty && !hasActiveFilter {
                 LogEmptyView()
@@ -148,46 +147,66 @@ struct LogView: View {
     }
 
     private var filterBar: some View {
-        HStack(spacing: 8) {
-            // Free-text search
-            HStack(spacing: 4) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.secondary)
-                TextField("log.searchfield", text: $searchText)
-                    .textFieldStyle(.plain)
-                if !searchText.isEmpty {
-                    Button { searchText = "" } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.secondary)
+        Group {
+            if inMenuPanel {
+                VStack(spacing: 8) {
+                    searchField
+                    HStack(spacing: 8) {
+                        levelPicker
+                        timePicker
                     }
-                    .buttonStyle(.plain)
+                }
+            } else {
+                HStack(spacing: 8) {
+                    searchField
+                    levelPicker
+                    timePicker
                 }
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 5)
-            .background(.quaternary, in: RoundedRectangle(cornerRadius: 7))
-
-            // Level picker
-            Picker("log.picker.level", selection: $levelFilter) {
-                ForEach(LogLevelFilter.allCases) { level in
-                    Text("\(level.emoji) \(level.localizedName)")
-                        .tag(level)
-                }
-            }
-            .labelsHidden()
-            .frame(maxWidth: 130)
-
-            // Time range picker
-            Picker("log.picker.time", selection: $timeFilter) {
-                ForEach(TimeRangeFilter.allCases) { range in
-                    Text(range.localizedName).tag(range)
-                }
-            }
-            .labelsHidden()
-            .frame(maxWidth: 120)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
+    }
+
+    private var searchField: some View {
+        // Free-text search
+        HStack(spacing: 4) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+            TextField("log.searchfield", text: $searchText)
+                .textFieldStyle(.plain)
+            if !searchText.isEmpty {
+                Button { searchText = "" } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .background(.quaternary, in: RoundedRectangle(cornerRadius: 7))
+
+    }
+
+    private var levelPicker: some View {
+        Picker("log.picker.level", selection: $levelFilter) {
+            ForEach(LogLevelFilter.allCases) { level in
+                Text(level.localizedName).tag(level)
+            }
+        }
+        .labelsHidden()
+        .frame(maxWidth: inMenuPanel ? .infinity : 130)
+    }
+
+    private var timePicker: some View {
+        Picker("log.picker.time", selection: $timeFilter) {
+            ForEach(TimeRangeFilter.allCases) { range in
+                Text(range.localizedName).tag(range)
+            }
+        }
+        .labelsHidden()
+        .frame(maxWidth: inMenuPanel ? .infinity : 120)
     }
 
     @ViewBuilder
@@ -200,7 +219,8 @@ struct LogView: View {
                 ForEach(filteredLogs) { entry in
                     VStack(alignment: .leading, spacing: 2) {
                         Text(entry.message)
-                            .font(.body)
+                            .font(inMenuPanel ? .system(size: 11, design: .monospaced) : .body)
+                            .textSelection(.enabled)
                         Text(dateFormatter.string(from: entry.timestamp))
                             .font(.caption)
                             .foregroundStyle(.secondary)

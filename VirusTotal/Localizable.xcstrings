@@ -4062,6 +4062,12 @@
     },
     "log.level.all" : {
       "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Все уровни"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4078,83 +4084,124 @@
     },
     "log.level.critical" : {
       "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Критические"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Critical"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "log.level.debug" : {
       "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отладка"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Debug"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "log.level.error" : {
       "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ошибки"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Error"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "log.level.fault" : {
       "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сбои"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fault"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "log.level.info" : {
       "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Информация"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Info"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "log.level.verbose" : {
       "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подробно"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Verbose"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "log.level.warning" : {
       "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предупреждения"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Warning"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "log.picker.level" : {
       "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Уровень"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4171,6 +4218,12 @@
     },
     "log.picker.time" : {
       "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Период"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4187,6 +4240,12 @@
     },
     "log.searchfield" : {
       "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поиск в журналах…"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4203,6 +4262,12 @@
     },
     "log.time.all" : {
       "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Всё время"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4219,6 +4284,12 @@
     },
     "log.time.last_1_hour" : {
       "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Последний час"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4235,6 +4306,12 @@
     },
     "log.time.last_1_min" : {
       "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Последняя минута"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4251,6 +4328,12 @@
     },
     "log.time.last_5_min" : {
       "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Последние 5 минут"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4267,6 +4350,12 @@
     },
     "log.time.last_15_min" : {
       "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Последние 15 минут"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
