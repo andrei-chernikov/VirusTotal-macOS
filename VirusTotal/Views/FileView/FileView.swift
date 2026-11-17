@@ -19,119 +19,133 @@ struct FileView: View {
 
     var body: some View {
         ZStack {
-            VStack {
-                Text("fileview.title")
-                    .font(inMenuPanel ? .title2 : .title)
-                    .frame(maxWidth: .infinity, maxHeight: 0, alignment: .leading)
-                    .padding(.vertical)
-                switch viewModel.statusMonitor {
-                case .none:
-                    Spacer()
-                    VStack(alignment: .center) {
-                        Image(systemName: "doc.text.magnifyingglass")
-                            .font(.system(size: inMenuPanel ? 44 : 80))
-                            .symbolRenderingMode(.hierarchical)
-                            .foregroundStyle(Color.accentColor)
-                        OpenFinderButton(title: "fileview.button.open.finder",
-                                         systemImage: "folder",
-                                         action: onPressFileImporter)
-                        .frame(minWidth: 200)
-                        .fixedSize()
-                        .padding(.top)
-                        .scaleEffect(isFileDropped ? 1.05 : 1)
-                        .animation(.spring, value: isFileDropped)
-                        .keyboardShortcut("o", modifiers: .command)
-                        .fileImporter(isPresented: $isFileImporterPresent,
-                                      allowedContentTypes: fileScanContentTypes,
-                                      allowsMultipleSelection: false) { result in
-                            switch result {
-                            case .success(let urls):
-                                urls.forEach { url in
-                                    viewModel.startFileImport(url)
-                                }
-                            case .failure(let error):
-                                log.error("File Import Error: \(error.localizedDescription)")
-                            }
-                        }
-                        Text("fileview.button.open.caption")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.bottom, inMenuPanel ? 8 : 60)
-                case .loading:
-                    LoadingView()
-                case .success:
-                    FileReportView()
-                case .upload, .uploading:
-                    Spacer()
-                    FileUploadView()
-                        .padding(.bottom, inMenuPanel ? 8 : 60)
-                case .fail:
-                    ErrorView(title: "errorview.title",
-                              errorMessage: viewModel.errorMessage ?? "")
-                case .analyzing:
-                    LoadingView()
-                case .empty: // Will not be used in FileView
-                    EmptyView()
-                }
-                Spacer()
-                // Button to visit File report on VT website
-                Button {
-                    NSWorkspace.shared.open(URL(string: makeVtURL(from: viewModel.inputSHA256)) ?? vtWebsite)
-                } label: {
-                    Label("urlview.button.go.vt", systemImage: "arrowshape.turn.up.right.fill")
-                        .symbolEffect(.bounce, value: isUploadFinished())
-                }
-                .frame(maxWidth: .infinity, alignment: inMenuPanel ? .center : .trailing)
-                .disabled(!isUploadFinished())
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.vertical)
-            .padding(.horizontal, inMenuPanel ? 12 : 20)
-            .onDrop(of: [.fileURL], delegate: AnyDropDelegate(
-                isTargeted: $isFileDropped.animation(.linear(duration: 0.1)),
-                onValidate: { dropInfo in
-                    !inMenuPanel && validateDropInfo(dropInfo)
-                },
-                onPerform: { dropInfo in
-                    guard validateDropInfo(dropInfo) else { return false }
-                    Task {
-                        let handled = await handleDropInfo(dropInfo)
-                        if !handled {
-                            viewModel.statusMonitor = .fail
-                            isFileDropped = false
-                            log.error("Failed to read dropped file")
-                        }
-                    }
-                    return true
-                }
-            ))
-            .border(isFileDropped ? Color.accentColor : .clear, width: 5)
-            .toolbar {
-                ToolbarItem(id: "back",
-                            placement: .navigation,
-                            showsByDefault: notOnStartView()) {
-                    Button(action: backToFileView) {
-                        Image(systemName: "chevron.left")
-                    }
-                    .help("fileview.toolbar.back")
-                    .keyboardShortcut("k", modifiers: [.command, .shift])
-                    /// There is a bug preventing the popup being dismissed by clicking "x"
-                    .popoverTip(tip, arrowEdge: .leading)
-                }
-                ToolbarItem(id: "reanalyzeFile",
-                            placement: .automatic,
-                            showsByDefault: isRequestSuccess()) {
-                    Button(action: requestReanalyze) {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                    .help("toolbar.button.rescan")
-                }
-            }
+            fileDropContent
             UploadProgressView()
+                .allowsHitTesting(false)
         }
         .onChange(of: isFileImporterPresent) { _, presented in
             NotificationCenter.default.post(name: .menuPanelModalChanged, object: presented)
+        }
+    }
+
+    private var fileContent: some View {
+        VStack {
+            Text("fileview.title")
+                .font(inMenuPanel ? .title2 : .title)
+                .frame(maxWidth: .infinity, maxHeight: 0, alignment: .leading)
+                .padding(.vertical)
+            switch viewModel.statusMonitor {
+            case .none:
+                Spacer()
+                VStack(alignment: .center) {
+                    Image(systemName: "doc.text.magnifyingglass")
+                        .font(.system(size: inMenuPanel ? 44 : 80))
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(Color.accentColor)
+                    OpenFinderButton(title: "fileview.button.open.finder",
+                                     systemImage: "folder",
+                                     action: onPressFileImporter)
+                    .frame(minWidth: 200)
+                    .fixedSize()
+                    .padding(.top)
+                    .scaleEffect(isFileDropped ? 1.05 : 1)
+                    .animation(.spring, value: isFileDropped)
+                    .keyboardShortcut("o", modifiers: .command)
+                    .fileImporter(isPresented: $isFileImporterPresent,
+                                  allowedContentTypes: fileScanContentTypes,
+                                  allowsMultipleSelection: false) { result in
+                        switch result {
+                        case .success(let urls):
+                            urls.forEach { url in
+                                viewModel.startFileImport(url)
+                            }
+                        case .failure(let error):
+                            log.error("File Import Error: \(error.localizedDescription)")
+                        }
+                    }
+                    Text("fileview.button.open.caption")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.bottom, inMenuPanel ? 8 : 60)
+            case .loading:
+                LoadingView()
+            case .success:
+                FileReportView()
+            case .upload, .uploading:
+                Spacer()
+                FileUploadView()
+                    .padding(.bottom, inMenuPanel ? 8 : 60)
+            case .fail:
+                ErrorView(title: "errorview.title",
+                          errorMessage: viewModel.errorMessage ?? "")
+            case .analyzing:
+                LoadingView()
+            case .empty: // Will not be used in FileView
+                EmptyView()
+            }
+            Spacer()
+            // Button to visit File report on VT website
+            Button {
+                NSWorkspace.shared.open(URL(string: makeVtURL(from: viewModel.inputSHA256)) ?? vtWebsite)
+            } label: {
+                Label("urlview.button.go.vt", systemImage: "arrowshape.turn.up.right.fill")
+                    .symbolEffect(.bounce, value: isUploadFinished())
+            }
+            .frame(maxWidth: .infinity, alignment: inMenuPanel ? .center : .trailing)
+            .disabled(!isUploadFinished())
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.vertical)
+        .padding(.horizontal, inMenuPanel ? 12 : 20)
+        .toolbar {
+            ToolbarItem(id: "back",
+                        placement: .navigation,
+                        showsByDefault: notOnStartView()) {
+                Button(action: backToFileView) {
+                    Image(systemName: "chevron.left")
+                }
+                .help("fileview.toolbar.back")
+                .keyboardShortcut("k", modifiers: [.command, .shift])
+                /// There is a bug preventing the popup being dismissed by clicking "x"
+                .popoverTip(tip, arrowEdge: .leading)
+            }
+            ToolbarItem(id: "reanalyzeFile",
+                        placement: .automatic,
+                        showsByDefault: isRequestSuccess()) {
+                Button(action: requestReanalyze) {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .help("toolbar.button.rescan")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var fileDropContent: some View {
+        if inMenuPanel {
+            fileContent
+        } else {
+            fileContent
+                .onDrop(of: [.fileURL], delegate: AnyDropDelegate(
+                    isTargeted: $isFileDropped.animation(.linear(duration: 0.1)),
+                    onValidate: { dropInfo in
+                        validateDropInfo(dropInfo)
+                    },
+                    onPerform: { dropInfo in
+                        guard validateDropInfo(dropInfo) else { return false }
+                        Task {
+                            let handled = await handleDropInfo(dropInfo)
+                            if !handled {
+                                viewModel.statusMonitor = .fail
+                                isFileDropped = false
+                                log.error("Failed to read dropped file")
+                            }
+                        }
+                        return true
+                    }
+                ))
+                .border(isFileDropped ? Color.accentColor : .clear, width: 5)
         }
     }
 

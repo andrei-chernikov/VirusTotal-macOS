@@ -37,18 +37,10 @@ struct MenuPanelView: View {
             .padding(.vertical, 8)
             .frame(maxWidth: .infinity)
             .background(.bar)
+            .onDrop(of: [.fileURL], delegate: fileDropDelegate)
             Divider()
             panelActions
-            NavigationStack {
-                Group {
-                    if router.showingSettings {
-                        SettingsView(updater: updater)
-                    } else {
-                        content
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            centralDropArea
             Divider()
             HStack {
                 Button { router.showingSettings = true } label: {
@@ -61,15 +53,10 @@ struct MenuPanelView: View {
             .padding(.vertical, 8)
             .frame(maxWidth: .infinity)
             .background(.bar)
+            .onDrop(of: [.fileURL], delegate: fileDropDelegate)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .contentShape(Rectangle())
-        .onDrop(of: [.fileURL], delegate: AnyDropDelegate(
-            isTargeted: $isFileDropTargeted,
-            onValidate: { canAcceptFileDrop && $0.itemProviders(for: [.fileURL]).count == 1 },
-            onPerform: receiveFileDrop,
-            onUpdated: { _ in DropProposal(operation: canAcceptFileDrop ? .copy : .forbidden) }
-        ))
         .overlay {
             if isFileDropTargeted && canAcceptFileDrop {
                 RoundedRectangle(cornerRadius: 12)
@@ -113,6 +100,29 @@ struct MenuPanelView: View {
         }
     }
 
+    private var centralDropArea: some View {
+        Group {
+            if router.showingSettings {
+                SettingsView(updater: updater)
+            } else {
+                content
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.clear)
+        .contentShape(Rectangle())
+        .onDrop(of: [.fileURL], delegate: fileDropDelegate)
+    }
+
+    private var fileDropDelegate: AnyDropDelegate {
+        AnyDropDelegate(
+            isTargeted: $isFileDropTargeted,
+            onValidate: { canAcceptFileDrop && $0.itemProviders(for: [.fileURL]).count == 1 },
+            onPerform: receiveFileDrop,
+            onUpdated: { _ in DropProposal(operation: canAcceptFileDrop ? .copy : .forbidden) }
+        )
+    }
+
     private var canAcceptFileDrop: Bool { router.canAcceptFileDrop }
 
     private func receiveFileDrop(_ info: DropInfo) -> Bool {
@@ -143,6 +153,7 @@ struct MenuPanelView: View {
                         file.cancelOngoingRequest()
                         file.statusMonitor = .none
                     }
+                    .padding(.vertical, 6)
                     if file.statusMonitor == .success {
                         Button("toolbar.button.rescan", systemImage: "arrow.clockwise") {
                             Task {

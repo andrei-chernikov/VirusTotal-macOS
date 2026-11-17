@@ -2903,13 +2903,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Back to Selection Page"
+            "value" : "Choose Another File"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Вернуться на страницу выбора"
+            "value" : "Выбрать другой файл"
           }
         },
         "zh-Hans" : {
