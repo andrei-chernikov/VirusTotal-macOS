@@ -225,6 +225,7 @@ struct LogView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
+                    .listRowBackground(inMenuPanel ? Color.clear : nil)
                     .id(entry.id)
                     .itemProvider {
                         NSItemProvider(object: entry.message as NSString)
@@ -232,6 +233,7 @@ struct LogView: View {
                 }
             }
             .listStyle(.plain)
+            .scrollContentBackground(inMenuPanel ? .hidden : .visible)
             .onChange(of: logManager.logs) {
                 // Only auto-scroll when no filter is active, so the view
                 // doesn't jump unexpectedly mid-search.

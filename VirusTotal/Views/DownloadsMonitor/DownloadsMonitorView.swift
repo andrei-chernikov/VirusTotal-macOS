@@ -164,7 +164,7 @@ struct DownloadsMonitorView: View {
             ContentUnavailableView(
                 "downloadsmonitor.empty.title",
                 systemImage: "tray",
-                description: Text("downloadsmonitor.autoscan.footnote")
+                description: Text(inMenuPanel ? "menu.monitor.empty.description" : "downloadsmonitor.autoscan.footnote")
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {

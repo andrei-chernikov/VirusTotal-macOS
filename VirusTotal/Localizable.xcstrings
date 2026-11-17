@@ -1,6 +1,12 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "menu.monitor.empty.description" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Auto Scan checks new files. Scan Existing checks files already in the folder. Unknown files may be uploaded and use quota." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Автопроверка — для новых файлов. «Проверить существующие» — для остальных. Неизвестные файлы могут загружаться и расходовать квоту." } }
+      }
+    },
     "settings.advanced.menubar_only" : {
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Menu Bar Interface" } },

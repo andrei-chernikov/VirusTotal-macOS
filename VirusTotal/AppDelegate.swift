@@ -11,12 +11,14 @@ import SwiftUI
 import UserNotifications
 
 @MainActor
-class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPopoverDelegate {
     var openMainWindowAction: (() -> Void)?
     var shouldShowMainWindowOnLaunch = false
     let menuPanelRouter = MenuPanelRouter()
     var menuPanelContent: (() -> AnyView)?
     private var menuPanel: NSPopover?
+    private var panelLocalClickMonitor: Any?
+    private var panelGlobalClickMonitor: Any?
     var isMenuPanelPrepared: Bool { menuPanel != nil }
 
     private(set) var statusItem: NSStatusItem?
@@ -43,6 +45,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             didHideInitialBackgroundWindow = true
             mainWindow.orderOut(nil)
         }
+    }
+
+    func applicationDidResignActive(_ notification: Notification) {
+        dismissPanelForOutsideClick()
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        stopPanelClickMonitoring()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -102,6 +112,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 showMenuPanel()
             }
         } else {
+            stopPanelClickMonitoring()
             menuPanel?.close()
             NSApp.setActivationPolicy(.regular)
             removeStatusItem()
@@ -192,6 +203,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if menuPanel == nil {
             let popover = NSPopover()
             popover.behavior = .transient
+            popover.delegate = self
             popover.contentViewController = NSHostingController(rootView: menuPanelContent())
             menuPanel = popover
         }
@@ -202,6 +214,50 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                                        height: min(480, max(300, visible.height - 48)))
         if !menuPanel.isShown { menuPanel.show(relativeTo: button.bounds, of: button, preferredEdge: .minY) }
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func popoverDidShow(_ notification: Notification) {
+        startPanelClickMonitoring()
+    }
+
+    func popoverDidClose(_ notification: Notification) {
+        stopPanelClickMonitoring()
+    }
+
+    private func startPanelClickMonitoring() {
+        stopPanelClickMonitoring()
+        let mask: NSEvent.EventTypeMask = [.leftMouseDown, .rightMouseDown, .otherMouseDown]
+        panelGlobalClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: mask) { [weak self] _ in
+            MainActor.assumeIsolated { self?.dismissPanelForOutsideClick() }
+        }
+        panelLocalClickMonitor = NSEvent.addLocalMonitorForEvents(matching: mask) { [weak self] event in
+            MainActor.assumeIsolated {
+                guard let self, let window = event.window else { return }
+                // Native menus and child popovers must retain their own clicks.
+                if window.level >= .popUpMenu { return }
+                var candidate: NSWindow? = window
+                while let current = candidate {
+                    if current == self.menuPanel?.contentViewController?.view.window { return }
+                    candidate = current.parent
+                }
+                if window != self.statusItem?.button?.window { self.dismissPanelForOutsideClick() }
+            }
+            return event
+        }
+    }
+
+    private func dismissPanelForOutsideClick() {
+        guard let menuPanel, menuPanel.isShown else { return }
+        // A file chooser or confirmation sheet owns dismissal until it finishes.
+        let hasModal = NSApp.modalWindow != nil || NSApp.windows.contains { $0.attachedSheet != nil }
+        if !hasModal { menuPanel.performClose(nil) }
+    }
+
+    private func stopPanelClickMonitoring() {
+        if let panelLocalClickMonitor { NSEvent.removeMonitor(panelLocalClickMonitor) }
+        if let panelGlobalClickMonitor { NSEvent.removeMonitor(panelGlobalClickMonitor) }
+        panelLocalClickMonitor = nil
+        panelGlobalClickMonitor = nil
     }
 
     @objc private func openSettingsFromMenu() {
