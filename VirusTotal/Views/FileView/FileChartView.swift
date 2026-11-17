@@ -11,41 +11,68 @@ import Charts
 struct FileChartView: View {
     private var viewModel = FileViewModel.shared
 
+    @Environment(\.inMenuPanel) private var inMenuPanel
     @State private var animateChart = false
 
     var body: some View {
-        let analysisStats = viewModel.lastAnalysisStats
-
-        VStack {
-            Chart(flagStats, id: \.type) { element in
-                SectorMark(
-                    // Use String() to avoid string being localized
-                    angle: .value(String("Flags"), animateChart ? element.number : 1),
-                    innerRadius: .ratio(0.618),
-                    angularInset: 1.5
-                )
-                .cornerRadius(3)
-                .foregroundStyle(by: .value(String("Type"), element.type.nslocalized))
-            }
-            .chartLegend(position: .leading, alignment: .center)
-            .chartBackground { chartProxy in
-                GeometryReader { geometry in
-                    let frame = chartProxy.plotFrame.map { geometry[$0] } ?? .zero
-                    VStack {
-                        Text(String(analysisStats?.malicious ?? 0))
-                            .font(.largeTitle.bold())
-                            .foregroundStyle(getFontColor())
-                        Text(verbatim: "/ \(numOfFlags(analysisStats: analysisStats ?? defaultAnalysisStats))")
-                            .font(.title2)
-                            .foregroundColor(.secondary)
+        if inMenuPanel {
+            HStack(alignment: .center, spacing: 12) {
+                chart
+                    .chartLegend(.hidden)
+                    .chartForegroundStyleScale(domain: flagStats.map { $0.type.nslocalized }, range: chartColors)
+                    .frame(width: 100, height: 100)
+                VStack(alignment: .leading, spacing: 3) {
+                    ForEach(flagStats.indices, id: \.self) { index in
+                        let flag = flagStats[index]
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(chartColors[index])
+                                .frame(width: 6, height: 6)
+                                .accessibilityHidden(true)
+                            Text(flag.type.nslocalized)
+                            Spacer(minLength: 4)
+                            Text(flag.number, format: .number)
+                                .monospacedDigit()
+                        }
+                        .accessibilityElement(children: .combine)
                     }
-                    .position(x: frame.midX, y: frame.midY)
                 }
+                .font(.caption)
             }
-            .animation(.smooth, value: animateChart)
-            .onAppear {
-                    animateChart = true
+        } else {
+            chart.chartLegend(position: .leading, alignment: .center)
+        }
+    }
+
+    private let chartColors: [Color] = [.blue, .green, .orange, .purple, .red, .cyan, .yellow, .gray]
+
+    private var chart: some View {
+        Chart(flagStats, id: \.type) { element in
+            SectorMark(
+                angle: .value(String("Flags"), inMenuPanel || animateChart ? element.number : 1),
+                innerRadius: .ratio(0.618),
+                angularInset: inMenuPanel ? 1 : 1.5
+            )
+            .cornerRadius(3)
+            .foregroundStyle(by: .value(String("Type"), element.type.nslocalized))
+        }
+        .chartBackground { chartProxy in
+            GeometryReader { geometry in
+                let frame = chartProxy.plotFrame.map { geometry[$0] } ?? .zero
+                VStack(spacing: inMenuPanel ? 2 : 8) {
+                    Text(String(viewModel.lastAnalysisStats?.malicious ?? 0))
+                        .font(inMenuPanel ? .headline : .largeTitle.bold())
+                        .foregroundStyle(getFontColor())
+                    Text(verbatim: "/ \(numOfFlags(analysisStats: viewModel.lastAnalysisStats ?? defaultAnalysisStats))")
+                        .font(inMenuPanel ? .caption : .title2)
+                        .foregroundStyle(.secondary)
+                }
+                .position(x: frame.midX, y: frame.midY)
             }
+        }
+        .animation(.smooth, value: animateChart)
+        .onAppear {
+            if !inMenuPanel { animateChart = true }
         }
     }
 

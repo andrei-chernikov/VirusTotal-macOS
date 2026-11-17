@@ -16,10 +16,11 @@ struct FileReportView: View {
         VStack {
             Form {
                 if inMenuPanel {
-                    VStack {
+                    VStack(alignment: .leading, spacing: 8) {
                         FileTypeView()
-                        FileChartView().frame(maxWidth: .infinity).frame(height: 180)
+                        FileChartView()
                     }
+                    .padding(.vertical, 4)
                 } else {
                     HStack(alignment: .center) {
                         Spacer()

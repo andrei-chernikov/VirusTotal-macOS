@@ -30,10 +30,16 @@ struct FileView: View {
 
     private var fileContent: some View {
         VStack {
-            Text("fileview.title")
-                .font(inMenuPanel ? .title2 : .title)
-                .frame(maxWidth: .infinity, maxHeight: 0, alignment: .leading)
-                .padding(.vertical)
+            if inMenuPanel && isRequestSuccess() {
+                Text("fileview.title")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                Text("fileview.title")
+                    .font(inMenuPanel ? .title2 : .title)
+                    .frame(maxWidth: .infinity, maxHeight: 0, alignment: .leading)
+                    .padding(.vertical)
+            }
             switch viewModel.statusMonitor {
             case .none:
                 Spacer()
@@ -84,11 +90,11 @@ struct FileView: View {
             case .empty: // Will not be used in FileView
                 EmptyView()
             }
-            Spacer()
+            if !inMenuPanel || !isRequestSuccess() { Spacer() }
             fileActions
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(.vertical)
+        .padding(.vertical, inMenuPanel && isRequestSuccess() ? 8 : 16)
         .padding(.horizontal, inMenuPanel ? 12 : 20)
         .toolbar {
             ToolbarItem(id: "back",
@@ -114,20 +120,38 @@ struct FileView: View {
     }
 
     private var fileActions: some View {
-        VStack(spacing: 8) {
-            Button {
-                NSWorkspace.shared.open(URL(string: makeVtURL(from: viewModel.inputSHA256)) ?? vtWebsite)
-            } label: {
-                Label("urlview.button.go.vt", systemImage: "arrowshape.turn.up.right.fill")
-                    .symbolEffect(.bounce, value: isUploadFinished())
-            }
-            .disabled(!isUploadFinished())
-
+        Group {
             if inMenuPanel && notOnStartView() {
-                Button("fileview.toolbar.back", systemImage: "chevron.left", action: backToFileView)
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 8) {
+                        reportButton
+                        chooseAnotherFileButton
+                    }
+                        .fixedSize(horizontal: true, vertical: false)
+                    VStack(spacing: 8) {
+                        reportButton
+                        chooseAnotherFileButton
+                    }
+                }
+            } else {
+                reportButton
             }
         }
         .frame(maxWidth: .infinity, alignment: inMenuPanel ? .center : .trailing)
+    }
+
+    private var reportButton: some View {
+        Button {
+            NSWorkspace.shared.open(URL(string: makeVtURL(from: viewModel.inputSHA256)) ?? vtWebsite)
+        } label: {
+            Label("urlview.button.go.vt", systemImage: "arrowshape.turn.up.right.fill")
+                .symbolEffect(.bounce, value: isUploadFinished())
+        }
+        .disabled(!isUploadFinished())
+    }
+
+    private var chooseAnotherFileButton: some View {
+        Button("fileview.toolbar.back", systemImage: "chevron.left", action: backToFileView)
     }
 
     @ViewBuilder
