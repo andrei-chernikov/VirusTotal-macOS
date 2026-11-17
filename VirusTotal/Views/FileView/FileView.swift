@@ -85,15 +85,7 @@ struct FileView: View {
                 EmptyView()
             }
             Spacer()
-            // Button to visit File report on VT website
-            Button {
-                NSWorkspace.shared.open(URL(string: makeVtURL(from: viewModel.inputSHA256)) ?? vtWebsite)
-            } label: {
-                Label("urlview.button.go.vt", systemImage: "arrowshape.turn.up.right.fill")
-                    .symbolEffect(.bounce, value: isUploadFinished())
-            }
-            .frame(maxWidth: .infinity, alignment: inMenuPanel ? .center : .trailing)
-            .disabled(!isUploadFinished())
+            fileActions
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.vertical)
@@ -119,6 +111,23 @@ struct FileView: View {
                 .help("toolbar.button.rescan")
             }
         }
+    }
+
+    private var fileActions: some View {
+        VStack(spacing: 8) {
+            Button {
+                NSWorkspace.shared.open(URL(string: makeVtURL(from: viewModel.inputSHA256)) ?? vtWebsite)
+            } label: {
+                Label("urlview.button.go.vt", systemImage: "arrowshape.turn.up.right.fill")
+                    .symbolEffect(.bounce, value: isUploadFinished())
+            }
+            .disabled(!isUploadFinished())
+
+            if inMenuPanel && notOnStartView() {
+                Button("fileview.toolbar.back", systemImage: "chevron.left", action: backToFileView)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: inMenuPanel ? .center : .trailing)
     }
 
     @ViewBuilder
