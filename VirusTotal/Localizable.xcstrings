@@ -1,6 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "menu.panel.drop.hint" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Drop a file to check" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Отпустите файл для проверки" } }
+      }
+    },
+    "menu.panel.drop.error" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Could not open the dropped file. Try choosing it in Finder." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось открыть файл. Попробуйте выбрать его через Finder." } }
+      }
+    },
     "menu.monitor.empty.description" : {
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Auto Scan checks new files. Scan Existing checks files already in the folder. Unknown files may be uploaded and use quota." } },

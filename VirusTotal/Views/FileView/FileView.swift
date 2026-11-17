@@ -91,7 +91,7 @@ struct FileView: View {
             .onDrop(of: [.fileURL], delegate: AnyDropDelegate(
                 isTargeted: $isFileDropped.animation(.linear(duration: 0.1)),
                 onValidate: { dropInfo in
-                    validateDropInfo(dropInfo)
+                    !inMenuPanel && validateDropInfo(dropInfo)
                 },
                 onPerform: { dropInfo in
                     guard validateDropInfo(dropInfo) else { return false }

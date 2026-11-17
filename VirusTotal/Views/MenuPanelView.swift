@@ -10,6 +10,7 @@ struct MenuPanelView: View {
     @Bindable private var appState = AppState.shared
     @Default(.appFirstLaunch) private var firstLaunch: Bool
     @State private var showClearHistory = false
+    @State private var isFileDropTargeted = false
     @State private var file = FileViewModel.shared
     @State private var url = URLViewModel.shared
     @State private var batch = FileBatchViewModel.shared
@@ -62,6 +63,28 @@ struct MenuPanelView: View {
             .background(.bar)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .contentShape(Rectangle())
+        .onDrop(of: [.fileURL], delegate: AnyDropDelegate(
+            isTargeted: $isFileDropTargeted,
+            onValidate: { canAcceptFileDrop && $0.itemProviders(for: [.fileURL]).count == 1 },
+            onPerform: receiveFileDrop,
+            onUpdated: { _ in DropProposal(operation: canAcceptFileDrop ? .copy : .forbidden) }
+        ))
+        .overlay {
+            if isFileDropTargeted && canAcceptFileDrop {
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(Color.accentColor, lineWidth: 2)
+                    .padding(4)
+                    .overlay(alignment: .top) {
+                        Label("menu.panel.drop.hint", systemImage: "doc.badge.arrow.up")
+                            .font(.callout.weight(.medium))
+                            .padding(10)
+                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+                            .padding(.top, 52)
+                    }
+                    .allowsHitTesting(false)
+            }
+        }
         .environment(\.inMenuPanel, true)
         .controlSize(.small)
         .confirmationDialog("history.clear.confirmation.title", isPresented: $showClearHistory) {
@@ -88,6 +111,27 @@ struct MenuPanelView: View {
         .onChange(of: appState.selectedSidebarItem) {
             router.showingSettings = false
         }
+    }
+
+    private var canAcceptFileDrop: Bool { router.canAcceptFileDrop }
+
+    private func receiveFileDrop(_ info: DropInfo) -> Bool {
+        let providers = info.itemProviders(for: [.fileURL])
+        guard canAcceptFileDrop, providers.count == 1, let provider = providers.first else { return false }
+        isFileDropTargeted = false
+        router.isReceivingFileDrop = true
+        Task { @MainActor in
+            let fileURL = await provider.fileURL()
+            router.isReceivingFileDrop = false
+            guard let fileURL else {
+                select(.fileUpload)
+                file.errorMessage = String(localized: "menu.panel.drop.error")
+                file.statusMonitor = .fail
+                return
+            }
+            router.acceptFileDrop(fileURL)
+        }
+        return true
     }
 
     @ViewBuilder private var panelActions: some View {
@@ -187,4 +231,28 @@ extension EnvironmentValues {
 @Observable
 final class MenuPanelRouter {
     var showingSettings = false
+    var isReceivingFileDrop = false
+
+    var canAcceptFileDrop: Bool {
+        guard !Defaults[.appFirstLaunch], !isReceivingFileDrop else { return false }
+        switch FileViewModel.shared.statusMonitor {
+        case .none, .upload, .success, .fail: return true
+        default: return false
+        }
+    }
+
+    @discardableResult
+    func acceptFileDrop(_ url: URL) -> Bool {
+        guard url.isFileURL, canAcceptFileDrop else { return false }
+        isReceivingFileDrop = true
+        showingSettings = false
+        AppState.shared.selectedSidebarItem = .fileUpload
+        NSApp.activate(ignoringOtherApps: true)
+        let task = FileViewModel.shared.startFileImport(url)
+        Task { @MainActor in
+            await task.value
+            isReceivingFileDrop = false
+        }
+        return true
+    }
 }

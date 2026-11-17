@@ -133,6 +133,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPopoverD
             statusItem?.button?.action = #selector(handleStatusItemClick(_:))
             statusItem?.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
             statusItem?.button?.setAccessibilityLabel("VirusTotal")
+            if let button = statusItem?.button {
+                let dropTarget = StatusItemFileDropView(frame: button.bounds)
+                dropTarget.autoresizingMask = [.width, .height]
+                dropTarget.button = button
+                dropTarget.canAccept = { [weak self] in self?.menuPanelRouter.canAcceptFileDrop == true }
+                dropTarget.openPanel = { [weak self] in self?.showMenuPanel() }
+                dropTarget.acceptFile = { [weak self] url in self?.menuPanelRouter.acceptFileDrop(url) == true }
+                button.addSubview(dropTarget)
+            }
         }
         statusItem?.button?.toolTip = localizedString("menubar.status.help")
 
@@ -391,4 +400,57 @@ extension Notification.Name {
     static let openMainWindowRequested = Notification.Name("openMainWindowRequested")
     static let openSettingsRequested = Notification.Name("openSettingsRequested")
     static let downloadsMonitorFileRequested = Notification.Name("downloadsMonitorFileRequested")
+}
+
+/// A drag destination over the status button; ordinary clicks keep its action.
+@MainActor
+private final class StatusItemFileDropView: NSView {
+    weak var button: NSStatusBarButton?
+    var canAccept: (() -> Bool)?
+    var openPanel: (() -> Void)?
+    var acceptFile: ((URL) -> Bool)?
+
+    override init(frame: NSRect) {
+        super.init(frame: frame)
+        registerForDraggedTypes([.fileURL])
+        setAccessibilityElement(false)
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    override func mouseDown(with event: NSEvent) { button?.highlight(true) }
+    override func mouseUp(with event: NSEvent) {
+        button?.highlight(false)
+        if bounds.contains(convert(event.locationInWindow, from: nil)) { button?.performClick(nil) }
+    }
+    override func rightMouseDown(with event: NSEvent) { }
+    override func rightMouseUp(with event: NSEvent) { button?.performClick(nil) }
+
+    override func draggingEntered(_ sender: any NSDraggingInfo) -> NSDragOperation {
+        guard droppedFile(sender) != nil, canAccept?() == true else { return [] }
+        openPanel?()
+        return .copy
+    }
+
+    override func draggingUpdated(_ sender: any NSDraggingInfo) -> NSDragOperation {
+        droppedFile(sender) != nil && canAccept?() == true ? .copy : []
+    }
+
+    override func prepareForDragOperation(_ sender: any NSDraggingInfo) -> Bool {
+        droppedFile(sender) != nil && canAccept?() == true
+    }
+
+    override func performDragOperation(_ sender: any NSDraggingInfo) -> Bool {
+        guard let url = droppedFile(sender) else { return false }
+        return acceptFile?(url) == true
+    }
+
+    private func droppedFile(_ sender: any NSDraggingInfo) -> URL? {
+        let urls = sender.draggingPasteboard.readObjects(
+            forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]
+        ) as? [URL]
+        return urls?.count == 1 ? urls?.first : nil
+    }
 }
