@@ -62,7 +62,6 @@ struct MenuPanelView: View {
             .background(.bar)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(nsColor: .windowBackgroundColor))
         .environment(\.inMenuPanel, true)
         .controlSize(.small)
         .confirmationDialog("history.clear.confirmation.title", isPresented: $showClearHistory) {
