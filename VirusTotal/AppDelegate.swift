@@ -23,7 +23,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPopoverD
 
     private(set) var statusItem: NSStatusItem?
     private var statusMenu: NSMenu?
-    private var fallbackMainWindow: NSWindow?
     private var didHideInitialBackgroundWindow = false
     private let notificationDelegate = NotificationCenterDelegate()
 
@@ -115,9 +114,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPopoverD
             stopPanelClickMonitoring()
             menuPanel?.close()
             NSApp.setActivationPolicy(.regular)
+            let isReturningFromMenuBar = statusItem != nil
             removeStatusItem()
-            if menuPanelContent != nil { showMainWindow() }
             didHideInitialBackgroundWindow = false
+            if isReturningFromMenuBar { showMainWindow() }
         }
     }
 
@@ -283,62 +283,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPopoverD
     }
 
     private func showMainWindow() {
-        didHideInitialBackgroundWindow = true
-        prepareForOpeningWindow()
-        if let openMainWindowAction {
-            openMainWindowAction()
-            if let window = NSApp.findWindow(WindowID.main) {
-                bringWindowToFront(window)
-            }
-        } else {
-            showExistingMainWindowOrFallback()
-        }
-    }
-
-    private func showExistingMainWindowOrFallback() {
         if let mainWindow = NSApp.findWindow(WindowID.main) {
             mainWindow.delegate = self
             bringWindowToFront(mainWindow)
-            return
+        } else if let openMainWindowAction {
+            prepareForOpeningWindow()
+            openMainWindowAction()
         }
-
-        if let fallbackMainWindow {
-            bringWindowToFront(fallbackMainWindow)
-            return
-        }
-
-        let isMiniMode = Defaults[.miniMode]
-        let windowSize = isMiniMode ? NSSize(width: 290, height: 180) : NSSize(width: 808, height: 639)
-        let window = NSWindow(
-            contentRect: NSRect(origin: .zero, size: windowSize),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
-            backing: .buffered,
-            defer: false
-        )
-
-        window.identifier = NSUserInterfaceItemIdentifier(WindowID.main.rawValue)
-        window.delegate = self
-        window.title = "VirusTotal for macOS"
-        window.titleVisibility = isMiniMode ? .hidden : .visible
-        window.titlebarAppearsTransparent = isMiniMode
-        window.isReleasedWhenClosed = false
-        window.isOpaque = true
-        window.center()
-
-        if isMiniMode {
-            window.contentView = NSHostingView(
-                rootView: AnyView(MiniModeView()
-                    .frame(width: 290, height: 180))
-            )
-        } else {
-            window.contentView = NSHostingView(
-                rootView: AnyView(ContentView()
-                    .frame(minWidth: 808, minHeight: 639))
-            )
-        }
-
-        fallbackMainWindow = window
-        bringWindowToFront(window)
+        // During startup SwiftUI may not have registered its scene yet.
+        // Let the scene create the initial window with the welcome sheet.
     }
 
     private func bringWindowToFront(_ window: NSWindow) {
