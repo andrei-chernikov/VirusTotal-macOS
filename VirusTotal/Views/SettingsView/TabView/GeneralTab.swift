@@ -5,6 +5,7 @@
 //  Created by Jerry on 2024-05-19.
 //
 
+import AppKit
 import SwiftUI
 import LaunchAtLogin
 import Defaults
@@ -13,6 +14,7 @@ import Sparkle
 struct GeneralTab: View {
     private let updater: SPUUpdater
 
+    @Environment(\.inMenuPanel) private var inMenuPanel
     @State private var autoChecksForUpdates: Bool
     @Default(.cleanURL) private var cleanURL: Bool
     @Default(.startPage) private var startPage: NavigationItem
@@ -46,6 +48,20 @@ struct GeneralTab: View {
                                      labelText: "settings.general.startpage")
                 }
                 .controlSize(.regular)
+
+                HStack(alignment: .center) {
+                    SettingsViewItem(
+                        color: .blue,
+                        systemImage: "globe",
+                        labelText: "settings.general.language"
+                    )
+                    Spacer()
+                    Button("settings.general.language.open") {
+                        openLanguageSettings()
+                    }
+                    .help("settings.general.language.hint")
+                    .accessibilityHint(Text("settings.general.language.hint"))
+                }
             }
 
             Section {
@@ -60,7 +76,7 @@ struct GeneralTab: View {
                                      subtitleText: "settnigs.general.current_version \(currentVersion)")
                 }
                 .controlSize(.regular)
-                .padding(.vertical, 4)
+                .padding(.vertical, inMenuPanel ? 0 : 4)
                 Toggle(isOn: $autoChecksForUpdates) {
                     SettingsViewItem(color: .purple,
                                      systemImage: "gearshape.arrow.triangle.2.circlepath",
@@ -80,6 +96,7 @@ struct GeneralTab: View {
         }
         .controlSize(.small)
         .formStyle(.grouped)
+        .contentMargins(.vertical, inMenuPanel ? 6 : nil, for: .scrollContent)
     }
 
     // MARK: Internal
@@ -89,6 +106,17 @@ struct GeneralTab: View {
     }
 
     // MARK: Private
+    private func openLanguageSettings() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.Localization-Settings.extension"),
+           NSWorkspace.shared.open(url) {
+            return
+        }
+
+        if let settings = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.systempreferences") {
+            NSWorkspace.shared.open(settings)
+        }
+    }
+
     private var currentVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
     }
