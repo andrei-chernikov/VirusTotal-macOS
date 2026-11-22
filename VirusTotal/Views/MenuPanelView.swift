@@ -13,46 +13,27 @@ struct MenuPanelView: View {
     @State private var isFileDropTargeted = false
     @State private var file = FileViewModel.shared
     @State private var url = URLViewModel.shared
-    @State private var batch = FileBatchViewModel.shared
-    @State private var monitor = DownloadsMonitorViewModel.shared
     @State private var history = ScanHistoryManager.shared
+    @State private var logs = LogManager.shared
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 4) {
-                sectionButton(.fileUpload)
-                sectionButton(.urlLookup)
-                sectionButton(.fileBatch)
-                Menu {
-                    ForEach([ServiceSidebarItem.home, .downloadsMonitor, .history, .log]) { item in
-                        Button { select(item) } label: { Label(item.titleKey, systemImage: item.systemImageName) }
-                    }
-                } label: {
-                    Label("menu.panel.more", systemImage: "ellipsis.circle")
-                }
-                .menuStyle(.borderlessButton)
-                .fixedSize()
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .frame(maxWidth: .infinity)
-            .background(.bar)
-            .onDrop(of: [.fileURL], delegate: fileDropDelegate)
-            Divider()
+            navigationBar
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .frame(maxWidth: .infinity)
+                .onDrop(of: [.fileURL], delegate: fileDropDelegate)
             panelActions
             centralDropArea
-            Divider()
-            HStack {
-                Button { router.showingSettings = true } label: {
-                    Label("menubar.open.settings", systemImage: "gearshape")
+            Group {
+                if #available(macOS 26, *) {
+                    GlassEffectContainer(spacing: 8) { footerButtons }
+                } else {
+                    footerButtons
                 }
-                Spacer()
-                Button("menubar.quit") { NSApp.terminate(nil) }
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
-            .frame(maxWidth: .infinity)
-            .background(.bar)
             .onDrop(of: [.fileURL], delegate: fileDropDelegate)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -97,6 +78,47 @@ struct MenuPanelView: View {
         }
         .onChange(of: appState.selectedSidebarItem) {
             router.showingSettings = false
+        }
+    }
+
+    @ViewBuilder private var navigationBar: some View {
+        if #available(macOS 26, *) {
+            navigationButtons
+                .padding(3)
+                .glassEffect(.regular, in: .capsule)
+        } else {
+            navigationButtons
+                .padding(3)
+                .background(.regularMaterial, in: Capsule())
+        }
+    }
+
+    private var navigationButtons: some View {
+        HStack(spacing: 4) {
+            sectionButton(.fileUpload)
+            sectionButton(.urlLookup)
+            sectionButton(.fileBatch)
+            Menu {
+                ForEach([ServiceSidebarItem.home, .downloadsMonitor, .history, .log]) { item in
+                    Button { select(item) } label: { Label(item.titleKey, systemImage: item.systemImageName) }
+                }
+            } label: {
+                Label("menu.panel.more", systemImage: "ellipsis.circle")
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+        }
+    }
+
+    private var footerButtons: some View {
+        HStack {
+            Button { router.showingSettings = true } label: {
+                Label("menubar.open.settings", systemImage: "gearshape")
+            }
+            .panelActionStyle()
+            Spacer()
+            Button("menubar.quit") { NSApp.terminate(nil) }
+                .panelActionStyle()
         }
     }
 
@@ -146,28 +168,39 @@ struct MenuPanelView: View {
 
     @ViewBuilder private var panelActions: some View {
         if !router.showingSettings {
-            HStack {
-                switch currentSection {
-                case .urlLookup where url.statusMonitor == .success:
-                    Button("toolbar.button.rescan", systemImage: "arrow.clockwise") {
-                        url.statusMonitor = .loading
-                        url.requestReanalyze()
-                    }
-                case .fileBatch where !batch.batchFiles.isEmpty:
-                    Button("filebatchview.clear.help.headline", systemImage: "trash") { batch.clearAllFiles() }
-                case .downloadsMonitor where !monitor.scanItems.isEmpty:
-                    Button("downloadsmonitor.button.clear", systemImage: "trash") { monitor.clearResults() }
-                        .disabled(monitor.hasActiveScanItems)
-                case .history where !history.scanEntries.isEmpty:
-                    Button("history.toolbar.clear", systemImage: "trash") { showClearHistory = true }
-                default:
-                    EmptyView()
+            switch currentSection {
+            case .urlLookup where url.statusMonitor == .success:
+                Button("toolbar.button.rescan", systemImage: "arrow.clockwise") {
+                    url.statusMonitor = .loading
+                    url.requestReanalyze()
                 }
-                Spacer()
+                .panelActionStyle()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 12)
+            case .history:
+                clearHeader("history.toolbar.clear", disabled: history.scanEntries.isEmpty) {
+                    showClearHistory = true
+                }
+            case .log:
+                clearHeader("menu.panel.logs.clear", disabled: logs.logs.isEmpty) {
+                    logs.clearLogs()
+                }
+            default:
+                EmptyView()
             }
-            .buttonStyle(.borderless)
-            .padding(.horizontal, 12)
         }
+    }
+
+    private func clearHeader(_ label: LocalizedStringKey, disabled: Bool, action: @escaping () -> Void) -> some View {
+        HStack {
+            Text(currentSection.titleKey).font(.headline)
+            Spacer()
+            PanelClearButton(title: label, disabled: disabled, action: action)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 4)
+        .contentShape(Rectangle())
+        .onDrop(of: [.fileURL], delegate: fileDropDelegate)
     }
 
     private func sectionButton(_ item: ServiceSidebarItem) -> some View {
@@ -178,7 +211,7 @@ struct MenuPanelView: View {
                 .padding(.horizontal, 9)
                 .padding(.vertical, 6)
                 .background(selected ? Color.accentColor.opacity(0.2) : Color.clear,
-                            in: RoundedRectangle(cornerRadius: 7))
+                            in: Capsule())
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -209,6 +242,31 @@ struct MenuPanelView: View {
         case .downloadsMonitor: DownloadsMonitorView()
         case .history: ScanHistoryView(compact: true)
         case .log: LogView()
+        }
+    }
+}
+
+struct PanelClearButton: View {
+    let title: LocalizedStringKey
+    let disabled: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(title, systemImage: "trash", action: action)
+            .labelStyle(.iconOnly)
+            .panelActionStyle()
+            .help(Text(title))
+            .disabled(disabled)
+    }
+}
+
+extension View {
+    @ViewBuilder
+    func panelActionStyle() -> some View {
+        if #available(macOS 26, *) {
+            buttonStyle(.glass)
+        } else {
+            buttonStyle(.bordered)
         }
     }
 }

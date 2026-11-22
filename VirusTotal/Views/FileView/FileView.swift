@@ -36,7 +36,7 @@ struct FileView: View {
                         .font(.headline)
                     Spacer()
                     Button("toolbar.button.rescan", systemImage: "arrow.clockwise", action: requestReanalyze)
-                        .buttonStyle(.bordered)
+                        .panelActionStyle()
                 }
                 .padding(.bottom, 2)
             } else {
@@ -127,22 +127,33 @@ struct FileView: View {
     private var fileActions: some View {
         Group {
             if inMenuPanel && notOnStartView() {
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 8) {
-                        reportButton
-                        chooseAnotherFileButton
-                    }
-                        .fixedSize(horizontal: true, vertical: false)
-                    VStack(spacing: 8) {
-                        reportButton
-                        chooseAnotherFileButton
-                    }
+                if #available(macOS 26, *) {
+                    GlassEffectContainer(spacing: 4) { compactFileActions }
+                } else {
+                    compactFileActions
                 }
+            } else if inMenuPanel {
+                reportButton.panelActionStyle()
             } else {
                 reportButton
             }
         }
         .frame(maxWidth: .infinity, alignment: inMenuPanel ? .center : .trailing)
+    }
+
+    private var compactFileActions: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 8) {
+                reportButton
+                chooseAnotherFileButton
+            }
+            .fixedSize(horizontal: true, vertical: false)
+            VStack(spacing: 8) {
+                reportButton
+                chooseAnotherFileButton
+            }
+        }
+        .panelActionStyle()
     }
 
     private var reportButton: some View {

@@ -79,18 +79,6 @@ struct LogView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if inMenuPanel {
-                HStack {
-                    Text("sidebar.log").font(.headline)
-                    Spacer()
-                    Button("menu.panel.logs.clear", systemImage: "trash", action: clearLogs)
-                        .labelStyle(.iconOnly)
-                        .buttonStyle(.borderless)
-                        .disabled(logManager.logs.isEmpty)
-                }
-                .padding(.horizontal, 12)
-                .padding(.top, 10)
-            }
             if logManager.logs.isEmpty && !hasActiveFilter {
                 LogEmptyView()
             } else {

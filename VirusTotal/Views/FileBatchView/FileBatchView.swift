@@ -27,7 +27,7 @@ struct FileBatchView: View {
                 bottomActionsView
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.vertical)
+            .padding(.vertical, inMenuPanel ? 4 : 16)
             .padding(.horizontal, inMenuPanel ? 12 : 20)
             .onDrop(of: [.fileURL], delegate: AnyDropDelegate(
                 isTargeted: $isFileDropped.animation(.linear(duration: 0.1)),

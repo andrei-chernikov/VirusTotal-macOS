@@ -25,13 +25,16 @@ struct ScanHistoryView: View {
                         statusView(flag: entry.result.malicious)
                         VStack(alignment: .leading) {
                             Text(entry.target).lineLimit(2).textSelection(.enabled)
-                            Text("\(entry.scanType.rawValue) · \(entry.result.analysisDate) · \(entry.result.malicious)")
+                            Text("\(Text(entry.scanType.rawValue)) · \(entry.result.analysisDate) · \(entry.result.malicious)")
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                         Spacer()
                         Text("\(entry.result.reputation)").foregroundStyle(entry.result.reputation < 0 ? .orange : .secondary)
                     }
-                }.listStyle(.plain)
+                    .listRowBackground(Color.clear)
+                }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
             } else {
                 historyTable
             }

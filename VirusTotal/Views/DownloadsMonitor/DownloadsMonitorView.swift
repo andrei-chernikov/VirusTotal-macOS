@@ -55,7 +55,7 @@ struct DownloadsMonitorView: View {
             Text("downloadsmonitor.autoscan.alert.message")
         }
         .toolbar {
-            if !viewModel.scanItems.isEmpty {
+            if !inMenuPanel && !viewModel.scanItems.isEmpty {
                 ToolbarItem {
                     Button(action: viewModel.clearResults) {
                         Image(systemName: "trash")
@@ -77,24 +77,24 @@ struct DownloadsMonitorView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: inMenuPanel ? 10 : 16) {
-            HStack(alignment: .center, spacing: inMenuPanel ? 8 : 12) {
+        VStack(alignment: .leading, spacing: inMenuPanel ? 6 : 16) {
+            HStack(alignment: .center, spacing: inMenuPanel ? 6 : 12) {
                 Image(systemName: "folder.badge.gearshape")
-                    .font(.system(size: inMenuPanel ? 24 : 34))
+                    .font(.system(size: inMenuPanel ? 16 : 34))
                     .foregroundStyle(Color.accentColor)
-                    .frame(width: inMenuPanel ? 30 : 44)
+                    .frame(width: inMenuPanel ? 20 : 44)
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: inMenuPanel ? 2 : 4) {
                     Text("sidebar.downloadsmonitor")
                         .font(inMenuPanel ? .headline : .title2)
                         .fontWeight(.semibold)
                     Text(viewModel.statusMessage)
-                        .font(.subheadline)
+                        .font(inMenuPanel ? .caption : .subheadline)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                 }
 
-                Spacer()
+                Spacer(minLength: 4)
 
                 Toggle("downloadsmonitor.autoscan.toggle", isOn: Binding(
                     get: { viewModel.isEnabled },
@@ -109,7 +109,7 @@ struct DownloadsMonitorView: View {
                 .toggleStyle(.switch)
             }
 
-            HStack(spacing: 10) {
+            HStack(spacing: inMenuPanel ? 6 : 10) {
                 Button("downloadsmonitor.button.choose_folder", systemImage: "folder.badge.plus") {
                     isFolderImporterPresented = true
                 }
@@ -129,9 +129,18 @@ struct DownloadsMonitorView: View {
                 }
 
                 Spacer(minLength: 0)
+
+                if inMenuPanel {
+                    PanelClearButton(
+                        title: "downloadsmonitor.button.clear",
+                        disabled: viewModel.scanItems.isEmpty || viewModel.hasActiveScanItems,
+                        action: viewModel.clearResults
+                    )
+                }
             }
         }
-        .padding(inMenuPanel ? 10 : 20)
+        .padding(.horizontal, inMenuPanel ? 12 : 20)
+        .padding(.vertical, inMenuPanel ? 4 : 20)
     }
 
     private var fileTypeSettings: some View {
@@ -160,11 +169,23 @@ struct DownloadsMonitorView: View {
 
     @ViewBuilder
     private var content: some View {
-        if viewModel.scanItems.isEmpty {
+        if inMenuPanel && viewModel.scanItems.isEmpty {
+            VStack(alignment: .leading, spacing: 4) {
+                Label("downloadsmonitor.empty.title", systemImage: "tray")
+                    .font(.callout.weight(.semibold))
+                Text("menu.monitor.empty.description")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        } else if viewModel.scanItems.isEmpty {
             ContentUnavailableView(
                 "downloadsmonitor.empty.title",
                 systemImage: "tray",
-                description: Text(inMenuPanel ? "menu.monitor.empty.description" : "downloadsmonitor.autoscan.footnote")
+                description: Text("downloadsmonitor.autoscan.footnote")
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {

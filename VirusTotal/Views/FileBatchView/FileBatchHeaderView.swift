@@ -14,10 +14,22 @@ struct FileBatchHeaderView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("filebatchview.title")
-                .font(inMenuPanel ? .title2 : .title)
-                .frame(maxWidth: .infinity, maxHeight: 0, alignment: .leading)
-                .padding(.top)
+            if inMenuPanel {
+                HStack {
+                    Text("filebatchview.title").font(.headline)
+                    Spacer()
+                    PanelClearButton(
+                        title: "filebatchview.clear.help.headline",
+                        disabled: viewModel.batchFiles.isEmpty,
+                        action: viewModel.clearAllFiles
+                    )
+                }
+            } else {
+                Text("filebatchview.title")
+                    .font(.title)
+                    .frame(maxWidth: .infinity, maxHeight: 0, alignment: .leading)
+                    .padding(.top)
+            }
 
             if !viewModel.batchFiles.isEmpty {
                 HStack {
