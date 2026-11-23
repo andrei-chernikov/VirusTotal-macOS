@@ -4,67 +4,89 @@
     "menu.panel.drop.hint" : {
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Drop a file to check" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Отпустите файл для проверки" } }
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Отпустите файл для проверки" } },
+        "cs" : { "stringUnit" : { "state" : "machine_translated", "value" : "Přetáhněte soubor ke kontrole" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "machine_translated", "value" : "拖入文件进行扫描" } }
       }
     },
     "menu.panel.drop.error" : {
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Could not open the dropped file. Try choosing it in Finder." } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось открыть файл. Попробуйте выбрать его через Finder." } }
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось открыть файл. Попробуйте выбрать его через Finder." } },
+        "cs" : { "stringUnit" : { "state" : "machine_translated", "value" : "Přetažený soubor nelze otevřít. Zkuste ho vybrat ve Finderu." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "machine_translated", "value" : "无法打开拖入的文件。请尝试在 Finder 中选择。" } }
       }
     },
     "menu.monitor.empty.description" : {
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Auto Scan checks new files. Scan Existing checks files already in the folder. Unknown files may be uploaded and use quota." } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Автопроверка — для новых файлов. «Проверить существующие» — для остальных. Неизвестные файлы могут загружаться и расходовать квоту." } }
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "«Автопроверка» проверяет новые файлы. «Проверить существующие» проверяет файлы, которые уже находятся в папке. Неизвестные файлы могут быть загружены и расходовать квоту." } },
+        "cs" : { "stringUnit" : { "state" : "machine_translated", "value" : "Automatická kontrola skenuje nové soubory. Kontrola stávajících souborů skenuje soubory ve složce. Neznámé soubory se mohou nahrát a čerpat kvótu." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "machine_translated", "value" : "自动扫描会检查新文件。“扫描现有文件”会检查文件夹中的现有文件。未知文件可能会被上传并占用配额。" } }
       }
     },
     "settings.advanced.menubar_only" : {
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Menu Bar Interface" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Интерфейс в строке меню" } }
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Показывать значок в строке меню" } },
+        "cs" : { "stringUnit" : { "state" : "machine_translated", "value" : "Rozhraní v řádku nabídek" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "machine_translated", "value" : "菜单栏界面" } }
       }
     },
     "settings.advanced.menubar_only.subtitle" : {
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Open all features from the menu bar. The Dock icon is hidden." } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Все функции доступны из строки меню. Значок в Dock скрыт." } }
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Все функции доступны из строки меню. Значок в Dock скрыт." } },
+        "cs" : { "stringUnit" : { "state" : "machine_translated", "value" : "Všechny funkce jsou dostupné z řádku nabídek. Ikona v Docku je skrytá." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "machine_translated", "value" : "可从菜单栏访问所有功能。Dock 图标会隐藏。" } }
       }
     },
     "menu.panel.batch" : {
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Batch" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Пакет" } }
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Пакетная проверка" } },
+        "cs" : { "stringUnit" : { "state" : "machine_translated", "value" : "Dávka" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "machine_translated", "value" : "批量" } }
       }
     },
     "menu.panel.mini.disabled" : {
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Mini Mode is available in the regular window." } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Мини-режим доступен в обычном окне." } }
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Мини-режим доступен в обычном окне." } },
+        "cs" : { "stringUnit" : { "state" : "machine_translated", "value" : "Mini režim je dostupný v běžném okně." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "machine_translated", "value" : "迷你模式可在常规窗口中使用。" } }
       }
     },
     "menu.panel.logs.clear" : {
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Clear Logs" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Очистить журнал" } }
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Очистить журнал" } },
+        "cs" : { "stringUnit" : { "state" : "machine_translated", "value" : "Vymazat protokoly" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "machine_translated", "value" : "清除日志" } }
       }
     },
     "menu.history.empty.title" : {
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "No Scan History" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "История пока пуста" } }
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "История сканирования пуста" } },
+        "cs" : { "stringUnit" : { "state" : "machine_translated", "value" : "Žádná historie kontrol" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "machine_translated", "value" : "暂无扫描历史" } }
       }
     },
     "menu.history.empty.description" : {
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Your completed scans will appear here." } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Здесь появятся завершённые проверки." } }
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Здесь появятся завершённые проверки." } },
+        "cs" : { "stringUnit" : { "state" : "machine_translated", "value" : "Zde se zobrazí dokončené kontroly." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "machine_translated", "value" : "已完成的扫描会显示在这里。" } }
       }
     },
     "menu.panel.more" : {
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "More" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ещё" } }
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ещё" } },
+        "cs" : { "stringUnit" : { "state" : "machine_translated", "value" : "Více" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "machine_translated", "value" : "更多" } }
       }
     },
     "menubar.status.help" : {
@@ -78,7 +100,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Нажмите, чтобы открыть VirusTotal. Правый клик — настройки и выход."
+            "value": "Нажмите, чтобы открыть VirusTotal. Правый клик для настроек и выхода."
           }
         },
         "cs": {
@@ -2896,8 +2918,8 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zpět na stránku Nahrát"
+            "state" : "machine_translated",
+            "value" : "Vybrat jiný soubor"
           }
         },
         "en" : {
@@ -2914,8 +2936,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "返回选择界面"
+            "state" : "machine_translated",
+            "value" : "选择其他文件"
           }
         }
       }
@@ -2924,7 +2946,7 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "machine_translated",
             "value" : "Škodlivý soubor: %1$lld z %2$lld detekcí"
           }
         },
@@ -2937,12 +2959,12 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Файл пометили как вредоносный: %1$lld из %2$lld"
+            "value" : "Файл отмечен как вредоносный у %1$lld из %2$lld вендоров"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "machine_translated",
             "value" : "%1$lld / %2$lld 个安全厂商将该文件标记为恶意"
           }
         }
@@ -4289,7 +4311,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Поиск в журналах…"
+            "value" : "Фильтр журнала…"
           }
         },
         "en" : {
@@ -5628,7 +5650,7 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "machine_translated",
             "value" : "Jazyk aplikace"
           }
         },
@@ -5646,7 +5668,7 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "machine_translated",
             "value" : "应用语言"
           }
         }
@@ -5656,7 +5678,7 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "machine_translated",
             "value" : "Jazyk vyberte v části Aplikace v nastavení Jazyk a oblast."
           }
         },
@@ -5674,7 +5696,7 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "machine_translated",
             "value" : "在“语言与地区”的“应用程序”部分选择语言。"
           }
         }
@@ -5684,7 +5706,7 @@
       "localizations" : {
         "cs" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "machine_translated",
             "value" : "Otevřít Nastavení systému"
           }
         },
@@ -5702,7 +5724,7 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "machine_translated",
             "value" : "打开系统设置"
           }
         }
