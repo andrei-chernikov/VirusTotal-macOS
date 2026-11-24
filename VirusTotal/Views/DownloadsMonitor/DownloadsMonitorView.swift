@@ -109,38 +109,49 @@ struct DownloadsMonitorView: View {
                 .toggleStyle(.switch)
             }
 
-            HStack(spacing: inMenuPanel ? 6 : 10) {
-                Button("downloadsmonitor.button.choose_folder", systemImage: "folder.badge.plus") {
-                    isFolderImporterPresented = true
+            if #available(macOS 26, *), inMenuPanel {
+                GlassEffectContainer(spacing: 6) {
+                    headerActions
+                        .buttonStyle(.glass)
                 }
-
-                Button {
-                    isFileTypeSettingsPresented.toggle()
-                } label: {
-                    Image(systemName: "line.3.horizontal.decrease.circle")
-                }
-                .popover(isPresented: $isFileTypeSettingsPresented) {
-                    fileTypeSettings
-                }
-                .help("downloadsmonitor.filetypes.button")
-
-                Button("downloadsmonitor.button.scan_existing", systemImage: "arrow.triangle.2.circlepath") {
-                    confirmScanExistingIfNeeded()
-                }
-
-                Spacer(minLength: 0)
-
-                if inMenuPanel {
-                    PanelClearButton(
-                        title: "downloadsmonitor.button.clear",
-                        disabled: viewModel.scanItems.isEmpty || viewModel.hasActiveScanItems,
-                        action: viewModel.clearResults
-                    )
-                }
+            } else {
+                headerActions
             }
         }
         .padding(.horizontal, inMenuPanel ? 12 : 20)
         .padding(.vertical, inMenuPanel ? 4 : 20)
+    }
+
+    private var headerActions: some View {
+        HStack(spacing: inMenuPanel ? 6 : 10) {
+            Button("downloadsmonitor.button.choose_folder", systemImage: "folder.badge.plus") {
+                isFolderImporterPresented = true
+            }
+
+            Button {
+                isFileTypeSettingsPresented.toggle()
+            } label: {
+                Image(systemName: "line.3.horizontal.decrease.circle")
+            }
+            .popover(isPresented: $isFileTypeSettingsPresented) {
+                fileTypeSettings
+            }
+            .help("downloadsmonitor.filetypes.button")
+
+            Button("downloadsmonitor.button.scan_existing", systemImage: "arrow.triangle.2.circlepath") {
+                confirmScanExistingIfNeeded()
+            }
+
+            Spacer(minLength: 0)
+
+            if inMenuPanel {
+                PanelClearButton(
+                    title: "downloadsmonitor.button.clear",
+                    disabled: viewModel.scanItems.isEmpty || viewModel.hasActiveScanItems,
+                    action: viewModel.clearResults
+                )
+            }
+        }
     }
 
     private var fileTypeSettings: some View {
@@ -194,8 +205,10 @@ struct DownloadsMonitorView: View {
                     item: item,
                     isSelected: viewModel.selectedFilePath == item.originalFileURL.path
                 )
+                .listRowBackground(inMenuPanel ? Color.clear : nil)
             }
             .listStyle(.plain)
+            .scrollContentBackground(inMenuPanel ? .hidden : .automatic)
         }
     }
 
@@ -240,6 +253,12 @@ private struct DownloadsMonitorRowView: View {
     let item: DownloadScanItem
     let isSelected: Bool
     @State private var showErrorPopover = false
+    @Environment(\.inMenuPanel) private var inMenuPanel
+
+    private var rowBackground: Color {
+        if isSelected { return Color.accentColor.opacity(0.16) }
+        return inMenuPanel ? .clear : Color(NSColor.controlBackgroundColor)
+    }
 
     var body: some View {
         HStack(spacing: 12) {
@@ -276,8 +295,7 @@ private struct DownloadsMonitorRowView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(isSelected ? Color.accentColor.opacity(0.16) : Color(NSColor.controlBackgroundColor))
-        .cornerRadius(8)
+        .background(rowBackground, in: RoundedRectangle(cornerRadius: 8))
     }
 
     @ViewBuilder
